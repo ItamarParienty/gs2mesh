@@ -1,0 +1,29 @@
+write the script for rendereing pairs
+adjust format to dlnr format
+DTU->
+    scan001->
+        images/ (RGB images)
+        depths/ (GT depths)
+        COLMAP: sparse/0/...
+        
+    scan002
+    ...
+
+1. COLMAP + GS
+GS:
+
+splatting_output->
+    DTU->
+        scan001/
+        scan002
+        ...
+
+2. render stereo pairs + get disparity from depth
+
+output->
+    DTU->
+        scan001->
+            000->
+                left.png
+                right.png
+                disparity.png

@@ -5,6 +5,9 @@
 import os
 from pathlib import Path
 import csv
+import json
+from third_party.DLNR.core.utils.frame_utils import readPFM
+import numpy as np
 
 base_dir = os.path.abspath(os.path.join(__file__, '..', '..'))
 
@@ -90,3 +93,33 @@ def write_to_csv(dataset, csv_file, line):
     with open(csv_file, 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(line)
+
+
+def create_gt_disparities(colmap_dir, output_dir_root):
+    gt_depths_dir = os.path.abspath(os.path.join(colmap_dir, 'depths'))
+    gt_disparities_dir = os.path.abspath(os.path.join(colmap_dir, 'disparities'))
+    os.makedirs(gt_disparities_dir, exist_ok=True)
+
+    gt_depth_files = [f for f in os.listdir(gt_depths_dir) if f.endswith(".pfm")]
+    gt_depth_files.sort()
+
+    camera_data_path = os.path.abspath(os.path.join(output_dir_root,'camera_data.json'))
+    with open(camera_data_path, 'r') as file:
+        cameras_data = json.load(file)
+    left_cameras = [cam['left'] for cam in cameras_data]
+
+    for gt_depth_f, camera in zip(gt_depth_files, left_cameras):
+        gt_depth = readPFM(os.path.abspath(os.path.join(gt_depths_dir, gt_depth_f)))
+        gt_depth[gt_depth==0] = 'nan'
+        gt_disparity = (camera['fx'] * camera['baseline']) / gt_depth
+        gt_disparity_path = os.path.join(
+            gt_disparities_dir, 
+            gt_depth_f.replace("depth_map_", "disparity_").replace('.pfm', '.npy'))
+        print(gt_disparity_path)
+        np.save(gt_disparity_path, gt_disparity)
+
+        import matplotlib.pyplot as plt
+        gt_disparity[gt_disparity=='nan']=0
+        plt.imsave(gt_disparity_path.replace('.npy', '.png'), gt_disparity, cmap='jet')
+        break
+        
