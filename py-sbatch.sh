@@ -1,15 +1,6 @@
 #!/bin/bash
 
 ###
-# CS236781: Deep Learning
-# py-sbatch.sh
-#
-# This script runs python from within our conda env as a slurm batch job.
-# All arguments passed to this script are passed directly to the python
-# interpreter.
-#
-
-###
 # Example usage:
 #
 # Running the prepare-submission command from main.py as a batch job

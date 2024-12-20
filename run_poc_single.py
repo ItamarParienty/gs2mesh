@@ -51,10 +51,8 @@ def run_single(args):
     # =============================================================================
     #  Run COLMAP with unknown poses
     # =============================================================================
-    
     if not args.skip_colmap:
         run_colmap(colmap_dir, use_gpu=True, run_undistorter=False) # If there's an error regarding SiftGPU not being supported, set use_gpu to False
-
     # =============================================================================
     #  Run Gaussian Splatting
     # =============================================================================
@@ -72,7 +70,6 @@ def run_single(args):
     # =============================================================================
     #  Initialize renderer
     # =============================================================================
-    
     renderer = Renderer(base_dir, 
                         colmap_dir,
                         strings['output_dir_root'],
@@ -107,13 +104,13 @@ def run_single(args):
     # =============================================================================
     
     if not args.skip_masking:
-            if args.masker_automask:
-                GD_model, predictor, inference_state, images_dir = init_predictor(base_dir, renderer, args, device=device) 
-                masker = Masker(GD_model, predictor, inference_state, images_dir, renderer, stereo, args, image_number=0, visualize=False)
-                masker.segment()
-                args.TSDF_use_mask = True
-            else:
-                print("Automask must be enabled for masking in script mode. Skipping.")            
+        if args.masker_automask:
+            GD_model, predictor, inference_state, images_dir = init_predictor(base_dir, renderer, args, device=device) 
+            masker = Masker(GD_model, predictor, inference_state, images_dir, renderer, stereo, args, image_number=0, visualize=False)
+            masker.segment()
+            args.TSDF_use_mask = True
+        else:
+            print("Automask must be enabled for masking in script mode. Skipping.")            
                 
     # =============================================================================
     #  Initialize TSDF

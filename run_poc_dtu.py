@@ -30,15 +30,33 @@ def run_DTU_POC(args):
     #  Create meshes and evaluate
     # =============================================================================
     args.dataset_name=os.path.join('DTU', 'DTU_train')
-    args.scans = [1]
+
+
+    # test_scans_nums = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
+
+    # scans_dirs = os.listdir(os.path.join(os.getcwd(), 'data', args.dataset_name))
+    # args.scans = [int(scan.replace("scan", "")) for scan in scans_dirs]
+    # args.scans.sort()
+    
+    args.skip_colmap = False
+
+    #TODO: delete
+    # args.skip_colmap = True
+    # args.skip_GS = True
+    # args.skip_rendering = True
+
+
     args.skip_TSDF = True
     args.stereo_warm = False
     args.renderer_save_json = False
+    args.masker_automask = True
+    args.masker_prompt = 'main_object'
+    args.masker_SAM2_local = False
 
     for scan_num in args.scans:
 
         # =============================================================================
-        #  Create mesh
+        #  create output disparities
         # =============================================================================
 
         args.colmap_name = f'scan{scan_num}'
@@ -51,19 +69,19 @@ def run_DTU_POC(args):
         #  Evaluate
         # =============================================================================
         
-        out_dir = os.path.join(exp_path, str(scan_num))
-        Path(out_dir).mkdir(parents=True, exist_ok=True)
-        vis_out_dir = os.path.join(exp_path, str(scan_num))
-        Path(vis_out_dir).mkdir(parents=True, exist_ok=True)
-        result_mesh_file = os.path.join(out_dir, f"{dataset_string}_scan{scan_num}.ply")
-        cull_scan(scan_num, ply_file, result_mesh_file, Offical_DTU_Dataset)
-        cmd = f"python {os.path.join(os.getcwd(), 'evaluation', 'DTU', 'eval_code', 'eval.py')} --data {result_mesh_file} --scan {scan_num} --mode mesh --dataset_dir {Offical_DTU_Dataset} --vis_out_dir {vis_out_dir}"
-        output = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        output = output.replace(" ", ",").split(",")
-        output[-1] = output[-1].strip()
-        output = [scan_num] + output
+        # out_dir = os.path.join(exp_path, str(scan_num))
+        # Path(out_dir).mkdir(parents=True, exist_ok=True)
+        # vis_out_dir = os.path.join(exp_path, str(scan_num))
+        # Path(vis_out_dir).mkdir(parents=True, exist_ok=True)
+        # result_mesh_file = os.path.join(out_dir, f"{dataset_string}_scan{scan_num}.ply")
+        # cull_scan(scan_num, ply_file, result_mesh_file, Offical_DTU_Dataset)
+        # cmd = f"python {os.path.join(os.getcwd(), 'evaluation', 'DTU', 'eval_code', 'eval.py')} --data {result_mesh_file} --scan {scan_num} --mode mesh --dataset_dir {Offical_DTU_Dataset} --vis_out_dir {vis_out_dir}"
+        # output = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        # output = output.replace(" ", ",").split(",")
+        # output[-1] = output[-1].strip()
+        # output = [scan_num] + output
        
-        write_to_csv(args.dataset_name, csv_file, output)
+        # write_to_csv(args.dataset_name, csv_file, output)
         
 # =============================================================================
 #  Main driver code with arguments
