@@ -107,6 +107,9 @@ def run_single(args):
         if args.masker_automask:
             GD_model, predictor, inference_state, images_dir = init_predictor(base_dir, renderer, args, device=device) 
             masker = Masker(GD_model, predictor, inference_state, images_dir, renderer, stereo, args, image_number=0, visualize=False)
+            if masker.bboxes is None:
+                return None
+            
             masker.segment()
             args.TSDF_use_mask = True
         else:

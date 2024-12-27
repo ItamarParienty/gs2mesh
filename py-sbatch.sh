@@ -19,7 +19,7 @@
 NUM_NODES=1
 NUM_CORES=2
 NUM_GPUS=1
-NODE_NAME="gipdeep7"
+NODE_NAME="gipdeep10"
 JOB_NAME="gs2mesh"
 MAIL_USER="itamarp@campus.technion.com"
 MAIL_TYPE=ALL # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
@@ -46,6 +46,8 @@ echo "*** SLURM BATCH JOB '$JOB_NAME' STARTING ***"
 # Setup the conda env
 echo "*** Activating environment $CONDA_ENV ***"
 source $CONDA_HOME/etc/profile.d/conda.sh
+
+conda deactivate
 conda activate $CONDA_ENV
 
 # Run python with the args to the script
