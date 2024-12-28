@@ -9,39 +9,103 @@ import torch
 import sys
 import json
 import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+from shutil import copyfile
 
 from gs2mesh_utils.eval_utils import create_strings
 from gs2mesh_utils.argument_utils import ArgParser
 from gs2mesh_utils.eval_utils import prepare_eval, write_to_csv
-from third_party.DLNR.core.utils.frame_utils import readPFM
+from third_party.DLNR.core.utils.frame_utils import readPFM, writePFM
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 base_dir = os.path.abspath(os.getcwd())
 
+
 # =============================================================================
 #  Run
 # =============================================================================
+def create_paths(args):
+    """
+    Creates and returns a dictionary of formatted paths used in the DS creation process.
 
-def convert_gt_depth_to_disparities(args, strings, cam_idx):
+    Parameters:
+    args (Namespace): The arguments from the command line given to the reconstruction/evaluation function.
+
+    Returns:
+    dict: A dictionary containing the formatted paths.
+    """
+
+    strings = create_strings(args)
+
+    gt_scan_dir = os.path.abspath(os.path.join(base_dir, "data", args.dataset_name, args.colmap_name))
+    gt_depth_path = os.path.join(gt_scan_dir, "depths", f"depth_map_{str(args.cam_idx).zfill(4)}.pfm")
+    generated_dir_path = strings["output_dir_root"]
+    generated_cam_dir_path = os.path.join(generated_dir_path, f"{str(args.cam_idx).zfill(3)}")
+    
+    generated_render_left_path = os.path.join(generated_cam_dir_path, "left.png")
+    generated_render_right_path = os.path.join(generated_cam_dir_path, "right.png")
+
+    generated_disparity_path = os.path.join(generated_cam_dir_path, "out_DLNR_Middlebury", "disparity_LR.npy")
+    segmentation_mask_path = os.path.join(generated_cam_dir_path, "left_mask.npy")
+    occlusion_mask_path = os.path.join(generated_cam_dir_path, "out_DLNR_Middlebury", "occlusion_mask.npy")
+
+    final_ds_base_path = os.path.abspath(os.path.join(base_dir, "final_ds", args.dataset_name, args.colmap_name))
+    final_ds_left_path = os.path.join(final_ds_base_path, "left")
+    final_ds_right_path = os.path.join(final_ds_base_path, "right")
+    final_ds_disp_path = os.path.join(final_ds_base_path, "disp")
+
+    paths_dict = {
+        "gt_scan_dir": gt_scan_dir,
+        "gt_depth_path": gt_depth_path,
+        "generated_dir_path": generated_dir_path,
+        "generated_cam_dir_path": generated_cam_dir_path,
+        "generated_render_left_path": generated_render_left_path,
+        "generated_render_right_path": generated_render_right_path,
+        "generated_disparity_path": generated_disparity_path,
+        "segmentation_mask_path": segmentation_mask_path,
+        "occlusion_mask_path": occlusion_mask_path,
+        "final_ds_base_path": final_ds_base_path,
+        "final_ds_left_path": final_ds_left_path,
+        "final_ds_right_path": final_ds_right_path,
+        "final_ds_disp_path": final_ds_disp_path,
+    }
+
+    return paths_dict
+
+
+def save_disparity_for_ds(args, paths_dict, gt_disparity):
+    os.makedirs(paths_dict["final_ds_disp_path"], exist_ok=True)
+    out_file_path = os.path.join(paths_dict["final_ds_disp_path"], f"img{str(args.cam_idx)}")
+    np.save((out_file_path + ".npy"), gt_disparity)
+    writePFM((out_file_path + ".pfm"), gt_disparity)
+
+    gt_disparity_png = np.nan_to_num(gt_disparity, nan=0)
+
+    # Normalize array to 0–255 for 8-bit PNG 
+    gt_disparity_min, gt_disparity_max = np.min(gt_disparity_png), np.max(gt_disparity_png)
+    normalized_gt_disparity = ((gt_disparity_png - gt_disparity_min) / (gt_disparity_max - gt_disparity_min) * 255).astype(np.uint8)
+    plt.imsave((out_file_path + ".png"), normalized_gt_disparity)
+
+
+def convert_gt_depth_to_disparities(args):
     # =============================================================================
     #  Convert GT depths to disparities
     # =============================================================================
-    #set paths
-    gt_scan_dir = os.path.abspath(os.path.join(base_dir, "data", args.dataset_name, args.colmap_name))
-    gt_depth_path = os.path.join(gt_scan_dir, "depths", f"depth_map_{str(cam_idx).zfill(4)}.pfm")
-    output_dir_path = strings["output_dir_root"]
-    cam_output_dir_path = os.path.join(output_dir_path, f"{str(cam_idx).zfill(3)}")
-    camera_data = json.load(os.path.join(cam_output_dir_path,'camera_data.json'))
+    paths_dict = create_paths(args)
+
+    with open(os.path.join(paths_dict["generated_dir_path"], "camera_data.json")) as camera_data_file:
+        camera_data = json.load(camera_data_file)
 
     # set parameters
-    baseline = camera_data['left']['baseline']
-    fx = camera_data['left']['fx']
+    baseline = camera_data[args.cam_idx]["left"]["baseline"]
+    fx = camera_data[args.cam_idx]["left"]["fx"]
 
     # Load the necessary files
-    gt_depth_map = readPFM(gt_depth_path)
-    generated_disparity = np.load(os.path.join(cam_output_dir_path, 'out_DLNR_Middlebury','disparity_LR.npy'))
-    segmentation_mask = np.load(os.path.join(cam_output_dir_path, 'left_mask.npy'))
-    occlusion_mask = np.load(os.path.join(cam_output_dir_path, 'out_DLNR_Middlebury','occlusion_mask.npy'))
+    gt_depth_map = readPFM(paths_dict["gt_depth_path"])
+    generated_disparity = np.load(paths_dict["generated_disparity_path"])
+    segmentation_mask = np.load(paths_dict["segmentation_mask_path"])
+    occlusion_mask = np.load(paths_dict["occlusion_mask_path"])
 
     # Combine valid_mask with occlusion mask and segmentation_mask before calculating median depth
     valid_mask = ((gt_depth_map > 0) & (occlusion_mask > 0)) & segmentation_mask
@@ -60,30 +124,57 @@ def convert_gt_depth_to_disparities(args, strings, cam_idx):
     threshold = 5  # Set a threshold for large differences
     difference_mask = np.abs(scaled_gt_disparity - generated_disparity) <= threshold
     final_mask = valid_mask & difference_mask
-
+    
     # Apply final mask to outputs
-    masked_gt_disparity = np.where(final_mask, scaled_gt_disparity, 0)
-    masked_generated_disparity = np.where(final_mask, generated_disparity, 0)
+    masked_gt_disparity = np.where(final_mask, scaled_gt_disparity, np.NaN)
+    masked_generated_disparity = np.where(final_mask, generated_disparity, np.NaN)
+
+    save_disparity_for_ds(args, paths_dict, masked_gt_disparity)
+
+def copy_renders_to_ds_folder(args):
+    # =============================================================================
+    #  Copy the left and right renders from the generated folder to the DS folder
+    # =============================================================================
+    paths_dict = create_paths(args)
+    
+    os.makedirs(paths_dict["final_ds_left_path"], exist_ok=True)
+    os.makedirs(paths_dict["final_ds_right_path"], exist_ok=True)
+
+    left_out_path = os.path.join(paths_dict["final_ds_left_path"], f"img{str(args.cam_idx)}.png")
+    right_out_path = os.path.join(paths_dict["final_ds_right_path"], f"img{str(args.cam_idx)}.png")
+
+    copyfile(paths_dict['generated_render_left_path'], left_out_path)
+    copyfile(paths_dict['generated_render_right_path'], right_out_path)
 
 
 
-
-def create_dtu_gt_disparities(args):
+def create_dtu_stereo_ds(args):
     # =============================================================================
     #  Create GT disparities
     # =============================================================================
-
-    args.dataset_name = os.path.join("DTU", "DTU_train")
+    args.dataset_name = os.path.join("DTU", "train")
 
     for scan_num in args.scans:
         # =============================================================================
         #  create GT disparity for single scan
         # =============================================================================
-        args.colmap_name = f"scan{scan_num}"
-        args.GS_port = GS_port_orig + scan_num
         print(f"----START PROCESSING SCAN {scan_num}----")
+        args.colmap_name = f"scan{scan_num}"
         strings = create_strings(args)
-        convert_gt_depth_to_disparities(args, strings, 0)
+
+        #get number of cameras in this scan
+        cameras_data_file = os.path.join(strings["output_dir_root"], "camera_data.json")
+        with open(cameras_data_file ) as camera_data_file:
+            camera_data = json.load(camera_data_file)
+        args.cams_num = len(camera_data)
+
+        #process and copy data to final DS
+        # for cam_idx in args.cams_num:
+        for cam_idx in range(5):
+            print(f"----START PROCESSING CAM {cam_idx}----")
+            args.cam_idx = cam_idx
+            convert_gt_depth_to_disparities(args)
+            copy_renders_to_ds_folder(args)
 
 
 # =============================================================================
@@ -93,6 +184,4 @@ def create_dtu_gt_disparities(args):
 if __name__ == "__main__":
     parser = ArgParser("DTU")
     args = parser.parse_args()
-    GS_port_orig = args.GS_port
-
-    create_dtu_gt_disparities(args)
+    create_dtu_stereo_ds(args)

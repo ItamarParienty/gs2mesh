@@ -110,6 +110,8 @@ class Masker:
 
         self.points = []
         self.bboxes = self.get_GroundingDINO_bbox(image_filename, args.masker_prompt) if args.masker_automask else None
+        if self.bboxes is None:
+            return
         self.mask = None
 
         if visualize:
@@ -158,8 +160,15 @@ class Masker:
         
         h, w, _ = image_source.shape
         boxes = boxes * torch.Tensor([w, h, w, h])
+        if boxes.shape[0]==0:
+            print(f"GD failed to find boxes for image: {image_path}")
+            with open("failed_scans.txt", 'a') as f:
+                f.write(f"{image_path}\n")
+            return None
 
-        return box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()[0]
+        conv_boxes = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
+
+        return conv_boxes[0]
 
     def display_image(self):
         """

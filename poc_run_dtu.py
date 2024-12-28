@@ -57,7 +57,7 @@ def run_DTU_POC(args):
     # =============================================================================
     #  Create disparities, and masks
     # =============================================================================
-    args.dataset_name = os.path.join("DTU", "DTU_train")
+    args.dataset_name = os.path.join("DTU", "train")
 
     if args.scans == [0]:
         args.scans = all_train_scans()
