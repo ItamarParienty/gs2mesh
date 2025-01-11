@@ -35,7 +35,7 @@ def all_train_scans():
     return [scan for scan in all_scans if scan not in test_scans_nums]
 
 def set_poc_args(scan_num):
-    args.skip_TSDF = True
+    args.skip_TSDF = False
     args.stereo_warm = False
     args.renderer_save_json = True
     args.masker_automask = True
@@ -57,18 +57,17 @@ def run_DTU_POC(args):
     # =============================================================================
     #  Create disparities, and masks
     # =============================================================================
-    args.dataset_name = os.path.join("DTU", "train")
+    args.dataset_name = "DTU_test"
 
     if args.scans == [0]:
         args.scans = all_train_scans()
 
     for scan_num in args.scans:
-
         # =============================================================================
         #  create output disparities and masks
         # =============================================================================
-        if scan_num in test_scans_nums:
-            continue
+        # if scan_num in test_scans_nums:
+            # continue
         
         set_poc_args(scan_num)
         args.colmap_name = f"scan{scan_num}"

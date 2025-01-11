@@ -38,7 +38,7 @@ class Stereo:
         self.args = args
         self.model_name = self.args.stereo_model
         self.device = device
-        self.disparity_signs = {'DLNR_Middlebury': -1, 'DLNR_SceneFlow': -1}
+        self.disparity_signs = {'DLNR_Middlebury': -1, 'DLNR_SceneFlow': -1, 'DLNR_Finetuned': -1}
 
         if "DLNR" in self.model_name:
             DLNR_args = Namespace(corr_implementation='reg', 

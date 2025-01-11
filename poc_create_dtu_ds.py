@@ -50,7 +50,7 @@ def create_paths(args):
     segmentation_mask_path = os.path.join(generated_cam_dir_path, "left_mask.npy")
     occlusion_mask_path = os.path.join(generated_cam_dir_path, "out_DLNR_Middlebury", "occlusion_mask.npy")
 
-    final_ds_base_path = os.path.abspath(os.path.join(base_dir, "final_ds", args.dataset_name, args.colmap_name))
+    final_ds_base_path = os.path.abspath(os.path.join(base_dir, args.dataset_root, args.dataset_name, args.colmap_name))
     final_ds_left_path = os.path.join(final_ds_base_path, "left")
     final_ds_right_path = os.path.join(final_ds_base_path, "right")
     final_ds_disp_path = os.path.join(final_ds_base_path, "disp")
@@ -152,7 +152,8 @@ def create_dtu_stereo_ds(args):
     # =============================================================================
     #  Create GT disparities
     # =============================================================================
-    args.dataset_name = os.path.join("DTU", "train")
+    args.dataset_name = "DTU_test"
+    args.dataset_root = "gs2mesh_ds"
 
     for scan_num in args.scans:
         # =============================================================================
@@ -169,8 +170,8 @@ def create_dtu_stereo_ds(args):
         args.cams_num = len(camera_data)
 
         #process and copy data to final DS
-        # for cam_idx in args.cams_num:
-        for cam_idx in range(5):
+        for cam_idx in range(args.cams_num):
+        # for cam_idx in range(5):
             print(f"----START PROCESSING CAM {cam_idx}----")
             args.cam_idx = cam_idx
             convert_gt_depth_to_disparities(args)

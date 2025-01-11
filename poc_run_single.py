@@ -24,7 +24,6 @@ base_dir = os.path.abspath(os.getcwd())
 # =============================================================================
 
 def run_single(args):
-
     TSDF_voxel_length=args.TSDF_voxel/512
     colmap_dir = os.path.abspath(os.path.join(base_dir,'data',args.dataset_name,args.colmap_name))
     
