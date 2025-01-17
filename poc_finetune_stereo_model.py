@@ -42,10 +42,10 @@ def load_dlnr_model(args):
         name="DLNR_Finetuned",
         restore_ckpt=osp.join(base_dir, "third_party", "DLNR", "pretrained", "DLNR_Middlebury.pth"),
         mixed_precision=True,
-        batch_size=8,
+        batch_size=2,
         train_datasets=["gs2mesh_ds"],
         lr=0.0002,
-        num_steps=200000,
+        num_steps=10000,
         image_size=[384, 736],
         train_iters=22,
         wdecay=0.00001,
@@ -63,7 +63,7 @@ def load_dlnr_model(args):
         do_flip=False,
         spatial_scale=[-0.2, 0.4],
         noyjitter=False,
-        dataset="things",
+        dataset="gs2mesh_ds",
     )
 
     # DLNR_model = torch.nn.DataParallel(DLNR(DLNR_args), device_ids=[0])

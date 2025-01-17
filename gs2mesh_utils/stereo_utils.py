@@ -41,6 +41,8 @@ class Stereo:
         self.disparity_signs = {'DLNR_Middlebury': -1, 'DLNR_SceneFlow': -1, 'DLNR_Finetuned': -1}
 
         if "DLNR" in self.model_name:
+            restore_ckpt_path = os.path.join(self.base_dir, 'third_party', 'DLNR', 'pretrained', f'{self.model_name}.pth')
+
             DLNR_args = Namespace(corr_implementation='reg', 
                                   corr_levels=4, 
                                   corr_radius=4, 
@@ -49,7 +51,7 @@ class Stereo:
                                   mixed_precision=True, 
                                   n_downsample=2, 
                                   n_gru_layers=3, 
-                                  restore_ckpt=os.path.join(self.base_dir, 'third_party', 'DLNR', 'pretrained', f'{self.model_name}.pth'),
+                                  restore_ckpt=restore_ckpt_path,
                                   shared_backbone=False, 
                                   slow_fast_gru=False, 
                                   valid_iters=10)

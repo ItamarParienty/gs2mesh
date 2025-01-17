@@ -179,3 +179,5 @@ old/*
 .idea/*
 *.ipynb
 final_ds/*
+gs2mesh_ds/*
+output/*

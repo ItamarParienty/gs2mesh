@@ -119,6 +119,9 @@ class Logger:
     def close(self):
         self.writer.close()
 
+#TODO: delete:
+import os
+
 
 def train(args):
     model = nn.DataParallel(DLNR(args))
@@ -171,11 +174,18 @@ def train(args):
             logger.push(metrics)
 
             if total_steps % validation_frequency == validation_frequency - 1:
+
+                #TODO: delete
+                os.makedirs(Path('checkpoints'), exist_ok=True)
+
                 save_path = Path('checkpoints/%d_%s.pth' % (total_steps + 1, args.name))
                 logging.info(f"Saving file {save_path.absolute()}")
                 torch.save(model.state_dict(), save_path)
 
-                results = validate_things(model.module, iters=args.valid_iters)
+                if args.dataset == 'gs2mesh_ds':
+                    results = validate_gs2mesh(model.module, iters=args.valid_iters)
+                else:
+                    results = validate_things(model.module, iters=args.valid_iters)
 
                 logger.write_dict(results)
 

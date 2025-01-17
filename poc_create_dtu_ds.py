@@ -126,8 +126,11 @@ def convert_gt_depth_to_disparities(args):
     final_mask = valid_mask & difference_mask
     
     # Apply final mask to outputs
-    masked_gt_disparity = np.where(final_mask, scaled_gt_disparity, np.NaN)
-    masked_generated_disparity = np.where(final_mask, generated_disparity, np.NaN)
+    # masked_gt_disparity = np.where(final_mask, scaled_gt_disparity, np.NaN)
+    # masked_generated_disparity = np.where(final_mask, generated_disparity, np.NaN)
+    # CHANGED TO 0 BACKGROUND BECAUSE OF ISSUES WITH DLNR
+    masked_gt_disparity = np.where(final_mask, scaled_gt_disparity, 0)
+    masked_generated_disparity = np.where(final_mask, generated_disparity, 0)
 
     save_disparity_for_ds(args, paths_dict, masked_gt_disparity)
 
