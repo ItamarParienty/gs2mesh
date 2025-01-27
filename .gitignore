@@ -181,3 +181,6 @@ old/*
 final_ds/*
 gs2mesh_ds/*
 output/*
+old/*
+temp/*
+checkpoint_for_105/*
