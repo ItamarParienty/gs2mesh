@@ -176,9 +176,11 @@ def train(args):
             if total_steps % validation_frequency == validation_frequency - 1:
 
                 #TODO: delete
-                os.makedirs(Path('checkpoints'), exist_ok=True)
+                dir_name=f"lr{args.lr}_batch{args.batch_size}_train_iters{args.train_iters}"
+                os.makedirs(Path(f'checkpoints/{dir_name}'), exist_ok=True)
 
-                save_path = Path('checkpoints/%d_%s.pth' % (total_steps + 1, args.name))
+
+                save_path = Path('checkpoints/%s/%d_%s.pth' % (dir_name, total_steps + 1, args.name))
                 logging.info(f"Saving file {save_path.absolute()}")
                 torch.save(model.state_dict(), save_path)
 
