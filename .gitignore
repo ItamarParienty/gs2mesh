@@ -169,7 +169,6 @@ data/custom/*
 !data/custom/sculpture/
 data/custom/sculpture/*
 !data/custom/sculpture/sculpture.MP4
-old/*
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
@@ -178,9 +177,18 @@ old/*
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/*
 *.ipynb
-final_ds/*
-gs2mesh_ds/*
+
+data_for_finetune/*
+splatting_output_for_finetune/*
+output_for_finetune/*
+
+data_for_eval/*
+splatting_output_for_eval/*
+output_for_eval/*
+
 output/*
-old/*
-temp/*
-checkpoint_for_105/*
+checkpoints/*
+loss_plots/*
+runs/*
+GS2MESH_OLD/*
+
