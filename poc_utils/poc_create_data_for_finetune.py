@@ -17,6 +17,7 @@ from gs2mesh_utils.eval_utils import create_strings
 from gs2mesh_utils.argument_utils import ArgParser
 from gs2mesh_utils.eval_utils import prepare_eval, write_to_csv
 from third_party.DLNR.core.utils.frame_utils import readPFM, writePFM
+from poc_run_dtu import run_DTU_mesh_creation
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 base_dir = os.path.abspath(os.getcwd())
@@ -25,7 +26,7 @@ base_dir = os.path.abspath(os.getcwd())
 # =============================================================================
 #  Run
 # =============================================================================
-def create_paths(args):
+def create_paths(args, strings):
     """
     Creates and returns a dictionary of formatted paths used in the DS creation process.
 
@@ -36,11 +37,9 @@ def create_paths(args):
     dict: A dictionary containing the formatted paths.
     """
 
-    strings = create_strings(args)
-
     gt_scan_dir = os.path.abspath(os.path.join(base_dir, "data", args.dataset_name, args.colmap_name))
     gt_depth_path = os.path.join(gt_scan_dir, "depths", f"depth_map_{str(args.cam_idx).zfill(4)}.pfm")
-    generated_dir_path = strings["output_dir_root"]
+    generated_dir_path = strings["output_for_finetune_dir_root"]
     generated_cam_dir_path = os.path.join(generated_dir_path, f"{str(args.cam_idx).zfill(3)}")
     
     generated_render_left_path = os.path.join(generated_cam_dir_path, "left.png")
@@ -50,10 +49,10 @@ def create_paths(args):
     segmentation_mask_path = os.path.join(generated_cam_dir_path, "left_mask.npy")
     occlusion_mask_path = os.path.join(generated_cam_dir_path, "out_DLNR_Middlebury", "occlusion_mask.npy")
 
-    final_ds_base_path = os.path.abspath(os.path.join(base_dir, args.dataset_root, args.dataset_name, args.colmap_name))
-    final_ds_left_path = os.path.join(final_ds_base_path, "left")
-    final_ds_right_path = os.path.join(final_ds_base_path, "right")
-    final_ds_disp_path = os.path.join(final_ds_base_path, "disp")
+    data_for_finetune_base_path = os.path.abspath(os.path.join(base_dir, args.data_for_finetune_root, args.dataset_name, args.colmap_name))
+    data_for_finetune_left_path = os.path.join(data_for_finetune_base_path, "left")
+    data_for_finetune_right_path = os.path.join(data_for_finetune_base_path, "right")
+    data_for_finetune_disp_path = os.path.join(data_for_finetune_base_path, "disp")
 
     paths_dict = {
         "gt_scan_dir": gt_scan_dir,
@@ -65,18 +64,18 @@ def create_paths(args):
         "generated_disparity_path": generated_disparity_path,
         "segmentation_mask_path": segmentation_mask_path,
         "occlusion_mask_path": occlusion_mask_path,
-        "final_ds_base_path": final_ds_base_path,
-        "final_ds_left_path": final_ds_left_path,
-        "final_ds_right_path": final_ds_right_path,
-        "final_ds_disp_path": final_ds_disp_path,
+        "data_for_finetune_base_path": data_for_finetune_base_path,
+        "data_for_finetune_left_path": data_for_finetune_left_path,
+        "data_for_finetune_right_path": data_for_finetune_right_path,
+        "data_for_finetune_disp_path": data_for_finetune_disp_path,
     }
 
     return paths_dict
 
 
 def save_disparity_for_ds(args, paths_dict, gt_disparity):
-    os.makedirs(paths_dict["final_ds_disp_path"], exist_ok=True)
-    out_file_path = os.path.join(paths_dict["final_ds_disp_path"], f"img{str(args.cam_idx)}")
+    os.makedirs(paths_dict["data_for_finetune_disp_path"], exist_ok=True)
+    out_file_path = os.path.join(paths_dict["data_for_finetune_disp_path"], f"img{str(args.cam_idx)}")
     np.save((out_file_path + ".npy"), gt_disparity)
     writePFM((out_file_path + ".pfm"), gt_disparity)
 
@@ -88,13 +87,13 @@ def save_disparity_for_ds(args, paths_dict, gt_disparity):
     plt.imsave((out_file_path + ".png"), normalized_gt_disparity)
 
 
-def convert_gt_depth_to_disparities(args):
+def convert_gt_depth_to_disparities(args, strings):
     # =============================================================================
     #  Convert GT depths to disparities
     # =============================================================================
-    paths_dict = create_paths(args)
+    paths_dict = create_paths(args, strings)
 
-    with open(os.path.join(paths_dict["generated_dir_path"], "camera_data.json")) as camera_data_file:
+    with open(args.camera_data_files) as camera_data_file:
         camera_data = json.load(camera_data_file)
 
     # set parameters
@@ -134,51 +133,59 @@ def convert_gt_depth_to_disparities(args):
 
     save_disparity_for_ds(args, paths_dict, masked_gt_disparity)
 
-def copy_renders_to_ds_folder(args):
+def copy_renders_to_ds_folder(args, strings):
     # =============================================================================
     #  Copy the left and right renders from the generated folder to the DS folder
     # =============================================================================
-    paths_dict = create_paths(args)
+    paths_dict = create_paths(args, strings)
     
-    os.makedirs(paths_dict["final_ds_left_path"], exist_ok=True)
-    os.makedirs(paths_dict["final_ds_right_path"], exist_ok=True)
+    os.makedirs(paths_dict["data_for_finetune_left_path"], exist_ok=True)
+    os.makedirs(paths_dict["data_for_finetune_right_path"], exist_ok=True)
 
-    left_out_path = os.path.join(paths_dict["final_ds_left_path"], f"img{str(args.cam_idx)}.png")
-    right_out_path = os.path.join(paths_dict["final_ds_right_path"], f"img{str(args.cam_idx)}.png")
+    left_out_path = os.path.join(paths_dict["data_for_finetune_left_path"], f"img{str(args.cam_idx)}.png")
+    right_out_path = os.path.join(paths_dict["data_for_finetune_right_path"], f"img{str(args.cam_idx)}.png")
 
     copyfile(paths_dict['generated_render_left_path'], left_out_path)
     copyfile(paths_dict['generated_render_right_path'], right_out_path)
 
 
 
-def create_dtu_stereo_ds(args):
+def create_DTU_data_for_finetune(args):
     # =============================================================================
     #  Create GT disparities
     # =============================================================================
     args.dataset_name = "DTU_test"
-    args.dataset_root = "gs2mesh_ds"
+    args.data_for_finetune_root = "data_for_finetune"
+    args.skip_create_mesh = False
 
     for scan_num in args.scans:
         # =============================================================================
-        #  create GT disparity for single scan
+        #  Create Data for Fintune for Single Scan
         # =============================================================================
         print(f"----START PROCESSING SCAN {scan_num}----")
         args.colmap_name = f"scan{scan_num}"
         strings = create_strings(args)
+        strings["output_for_finetune_dir_root"] = strings["output_for_finetune_dir_root"].replace("output", "output_for_finetune")
+
+        # =============================================================================
+        #  Create Mesh from Scan for the Finetuning
+        # =============================================================================
+        if not args.skip_create_mesh:
+            run_DTU_mesh_creation(args)
 
         #get number of cameras in this scan
-        cameras_data_file = os.path.join(strings["output_dir_root"], "camera_data.json")
-        with open(cameras_data_file ) as camera_data_file:
+        cameras_data_file = os.path.join(strings["output_for_finetune_dir_root"], "camera_data.json")
+        with open(cameras_data_file) as camera_data_file:
             camera_data = json.load(camera_data_file)
+        args.camera_data_file = cameras_data_file
         args.cams_num = len(camera_data)
 
         #process and copy data to final DS
         for cam_idx in range(args.cams_num):
-        # for cam_idx in range(5):
             print(f"----START PROCESSING CAM {cam_idx}----")
             args.cam_idx = cam_idx
-            convert_gt_depth_to_disparities(args)
-            copy_renders_to_ds_folder(args)
+            convert_gt_depth_to_disparities(args, strings)
+            copy_renders_to_ds_folder(args, strings)
 
 
 # =============================================================================
@@ -188,4 +195,4 @@ def create_dtu_stereo_ds(args):
 if __name__ == "__main__":
     parser = ArgParser("DTU")
     args = parser.parse_args()
-    create_dtu_stereo_ds(args)
+    create_DTU_data_for_finetune(args)

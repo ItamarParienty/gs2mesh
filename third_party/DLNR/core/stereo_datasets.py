@@ -309,13 +309,13 @@ class Middlebury(StereoDataset):
         #     self.disparity_list += [disp]
 
 class GS2MESH_DTU(StereoDataset):
-    def __init__(self, aug_params=None, root="gs2mesh_ds", test_or_train="test", scan_name="scan105"):
+    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="test", scan_name="scan105"):
         super(GS2MESH_DTU, self).__init__(aug_params, sparse=True)
 
-        print(osp.join(root, f"DTU_{test_or_train}/{scan_name}/left/img*.png"))
-        left_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}/{scan_name}/left/img*.png")))
-        right_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}/{scan_name}/right/img*.png")))
-        disp_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}/{scan_name}/disp/img*.pfm")))
+        print(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png"))
+        left_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png")))
+        right_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "right", "img*.png")))
+        disp_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "disp", "img*.png")))
         for img1, img2, disp in zip(left_imgs_list, right_imgs_list, disp_list):
             self.image_list += [[img1, img2]]
             self.disparity_list += [disp]

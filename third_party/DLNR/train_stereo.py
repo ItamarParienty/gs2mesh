@@ -210,7 +210,7 @@ def train(args):
     PATH = 'checkpoints/%s.pth' % args.name
     torch.save(model.state_dict(), PATH)
 
-    return PATH
+    return PATH, logger.writer.file_writer.event_writer._file_name
 
 
 if __name__ == '__main__':

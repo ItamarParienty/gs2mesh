@@ -5,7 +5,7 @@ import argparse
 
 def plot_loss(run_file_name):
     # Path to your events file
-    event_file = f"./runs/{run_file_name}.0"
+    event_file = f"../runs/{run_file_name}.0"
 
     # Extract and print losses
     # Extract losses and steps

@@ -24,15 +24,10 @@ from third_party.DLNR.core.dlnr import DLNR
 from third_party.DLNR.core.stereo_datasets import StereoDataset
 from third_party.DLNR.core.utils.utils import InputPadder as DLNR_InputPadder
 from third_party.DLNR.train_stereo import train
+from poc_show_train_results import plot_loss
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 base_dir = osp.abspath(os.getcwd())
-
-
-# =============================================================================
-#  Run
-# =============================================================================
-
 
 def load_dlnr_model(args):
     # =============================================================================
@@ -42,7 +37,7 @@ def load_dlnr_model(args):
         name="DLNR_Finetuned",
         restore_ckpt=osp.join(base_dir, "third_party", "DLNR", "pretrained", "DLNR_Middlebury.pth"),
         mixed_precision=True,
-        batch_size=8,
+        batch_size=4,
         train_datasets=["gs2mesh_ds"],
         lr=2e-5,
         num_steps=10000,
@@ -66,18 +61,7 @@ def load_dlnr_model(args):
         dataset="gs2mesh_ds",
     )
 
-    # DLNR_model = torch.nn.DataParallel(DLNR(DLNR_args), device_ids=[0])
-    # DLNR_model.load_state_dict(torch.load(DLNR_args.restore_ckpt))
-    # DLNR_model = DLNR_model.module
-    # DLNR_model.to(device)
-    # DLNR_model.eval()
-
-    # return DLNR_model, DLNR_args
     return DLNR_args
-    # self.disparity_signs = {'DLNR_Middlebury': -1, 'DLNR_SceneFlow': -1}
-    # self.model = DLNR_model
-    # self.input_padder = DLNR_InputPadder
-    # self.model_args = DLNR_args
 
 
 def finetune_stereo_model(args):
@@ -88,7 +72,18 @@ def finetune_stereo_model(args):
     args.stereo_model = "DLNR_Finetuned"
 
     DLNR_args = load_dlnr_model(args)
-    checkpoints_path = train(DLNR_args)
+    checkpoints_path, event_file_path = train(DLNR_args)
+
+    # =============================================================================
+    #  Plot Loss Graph
+    # =============================================================================
+
+    # rename event file
+    new_event_file_name = f"lr{DLNR_args.lr}_batch{DLNR_args.batch_size}_train_iters{DLNR_args.train_iters}"
+    new_event_file_path = os.path.join(os.path.dirname(event_file_path), f"{new_event_file_name}.0")
+    os.rename(event_file_path, new_event_file_path)
+
+    plot_loss(new_event_file_name)
 
 
 # =============================================================================
