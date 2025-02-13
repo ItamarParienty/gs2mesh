@@ -186,9 +186,10 @@ data_for_eval/*
 splatting_output_for_eval/*
 output_for_eval/*
 
+data_original/*
 output/*
 checkpoints/*
 loss_plots/*
 runs/*
 GS2MESH_OLD/*
-
+BACKUP/*

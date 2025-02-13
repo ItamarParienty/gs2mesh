@@ -33,35 +33,38 @@ specific_prompts = {
     103: "pig",
 }
 
-
 def all_train_scans():
     all_scans = chain(range(1, 78), range(82, 129))
     return [scan for scan in all_scans if scan not in test_scans_nums]
 
-def move_dir(src_dir_path, dst_dir_parent_path):
-    if os.path.exists(dst_dir_parent_path):
-            shutil.rmtree(dst_dir_parent_path)
+def move_dir(src_dir_path, dst_dir_path):
+    print(f"---Moving dir {src_dir_path} to {dst_dir_path} ---")
+    dst_dir_parent_path = os.path.dirname(dst_dir_path)
+
+    if os.path.exists(dst_dir_path):
+            shutil.rmtree(dst_dir_path)
     Path(dst_dir_parent_path).mkdir(parents=True, exist_ok=True)
     shutil.move(src_dir_path, dst_dir_parent_path)
 
 def set_poc_args(args, scan_num):
+    args.skip_colmap = False
     args.skip_TSDF = False
     args.stereo_warm = False
     args.renderer_save_json = True
     args.masker_automask = True
+    args.masker_prompt = "main_object"
     args.masker_SAM2_local = False
 
-    # args.skip_colmap = scan_num in specific_prompts
-    # args.skip_GS = scan_num in specific_prompts
-    # args.skip_rendering = scan_num in specific_prompts
-    # args.masker_prompt = specific_prompts[scan_num] if scan_num in specific_prompts else 'main_object'
+    args.masker_prompt = specific_prompts[scan_num] if scan_num in specific_prompts else 'main_object'
 
     args.colmap_name = f"scan{scan_num}"
-    args.GS_port = GS_port_orig + scan_num
+    args.GS_port = args.GS_port + scan_num
+
+    args.dataset_name = "DTU_test" if scan_num in test_scans_nums else "DTU_train"
 
     # TODO: delete
-    # args.skip_colmap = True
-    # args.skip_GS = True
+    args.skip_colmap = True
+    args.skip_GS = True
     # args.skip_rendering = True
     # args.skip_masking = True
     return args
@@ -71,10 +74,11 @@ def run_DTU_mesh_creation(args):
     # =============================================================================
     #  Create disparities, and masks
     # =============================================================================
-    args.dataset_name = "DTU_test"
-
     if args.scans == [0]:
         args.scans = all_train_scans()
+    if args.scans == [-1]:
+        args.scans = test_scans_nums
+         
 
     for scan_num in args.scans:
         # =============================================================================
@@ -84,10 +88,9 @@ def run_DTU_mesh_creation(args):
         # =============================================================================
         #  Set Scan Args
         # =============================================================================
+        args = set_poc_args(args, scan_num)
         
-        args = set_poc_args(scan_num)
-        
-        print(f"----START PROCESSING SCAN {scan_num}----")
+        print(f"----START DTU Mesh Creation SCAN {scan_num}----")
         print("args:")
         print(args)
 
@@ -104,7 +107,7 @@ def run_DTU_mesh_creation(args):
         # if didn't ran the GS, there will be no splatting_output dir, 
         # but there may be one from previous run in the splatting_output_for_finetune dir so we move it to the output dir
         if (not os.path.exists(splatting_output_dir_root)) and (args.skip_GS) and (os.path.exists(splatting_output_for_finetune_dir_root)):
-             move_dir(splatting_output_for_finetune_dir_root, os.path.dirname(splatting_output_dir_root))
+            move_dir(splatting_output_for_finetune_dir_root, splatting_output_dir_root)
 
         run_single(args)
 
@@ -112,8 +115,8 @@ def run_DTU_mesh_creation(args):
         #  Move Outputs Folders to Avoid Clashes
         # =============================================================================
 
-        move_dir(output_dir_root, os.path.dirname(output_for_finetune_dir_root))
-        move_dir(splatting_output_dir_root, os.path.dirname(splatting_output_for_finetune_dir_root))
+        move_dir(output_dir_root, output_for_finetune_dir_root)
+        move_dir(splatting_output_dir_root, splatting_output_for_finetune_dir_root)
 
 
 # =============================================================================
@@ -123,6 +126,5 @@ def run_DTU_mesh_creation(args):
 if __name__ == "__main__":
     parser = ArgParser('DTU')
     args = parser.parse_args()
-    GS_port_orig = args.GS_port
 
     run_DTU_mesh_creation(args)

@@ -41,33 +41,34 @@ def run_icp(src_mesh_file, gt_dataset_dir, scan, icp_result_mesh_file):
 
     # Load source and target point clouds
     print(f"loading cull scan result mesh")
-    source_pcd = o3d.io.read_point_cloud(src_mesh_file)
-    # source = np.asarray(source_pcd.points)
+    source_mesh = o3d.io.read_triangle_mesh(src_mesh_file)
+    # source_pcd = source_mesh.sample_points_uniformly(number_of_points=10000)
+
+    source_pcd = o3d.geometry.PointCloud()
+    source_pcd.points = o3d.utility.Vector3dVector(np.asarray(source_mesh.vertices))
     
     print(f"loading GT mesh")
     target_pcd = o3d.io.read_point_cloud(f'{gt_dataset_dir}/Points/stl/stl{scan:03}_total.ply')
-    # target = np.asarray(target_pcd.points)
 
     # Initial alignment
     trans_init = np.eye(4)
-    source_pcd.transform(trans_init)
 
     # ICP Registration
-    threshold = 0.02  # Distance threshold for point matching
+    threshold = 0.005  # Distance threshold for point matching
     icp_result = o3d.pipelines.registration.registration_icp(
         source_pcd, target_pcd, threshold, trans_init,
         o3d.pipelines.registration.TransformationEstimationPointToPoint()
     )
 
     # Apply transformation
-    source_pcd.transform(icp_result.transformation)
+    source_mesh.transform(icp_result.transformation)
 
     # Save output point cloud
-    o3d.io.write_point_cloud(icp_result_mesh_file, source_pcd)
+    o3d.io.write_triangle_mesh(icp_result_mesh_file, source_mesh)
 
 
 
-def run_DTU_POC(args):
+def run_DTU_eval(args):
 
     # =============================================================================
     #  Set arguments
@@ -76,11 +77,12 @@ def run_DTU_POC(args):
     Offical_DTU_Dataset = os.path.join(os.getcwd(), 'data_for_eval', 'DTU', 'SampleSet', 'MVS_Data')
     dataset_string, exp_path, csv_file = prepare_eval(args)
 
+    args.data_root_dir = "data_for_eval"
     args.dataset_name = "DTU"
     # args.stereo_model = "DLNR_Finetuned"
     
-    # args.skip_colmap = True
-    # args.skip_GS = True
+    args.skip_colmap = True
+    args.skip_GS = True
     # args.skip_rendering = True
     # args.skip_masking = True
     # args.skip_TSDF = True
@@ -136,12 +138,11 @@ def run_DTU_POC(args):
         #  Evaluate Before ICP
         # =============================================================================
 
-        out_dir = os.path.join(exp_path, str(scan_num))
+        out_dir = os.path.join(exp_path, str(scan_num), "without_ICP")
         Path(out_dir).mkdir(parents=True, exist_ok=True)
-        vis_out_dir = os.path.join(exp_path, str(scan_num))
+        vis_out_dir = os.path.join(exp_path, str(scan_num), "without_ICP")
         Path(vis_out_dir).mkdir(parents=True, exist_ok=True)
         result_mesh_file = os.path.join(out_dir, f"{dataset_string}_scan{scan_num}.ply")
-        # result_mesh_file = os.path.join(out_dir, "dtu105_ICP_orig.ply")
         cull_scan(scan_num, ply_file, result_mesh_file, Offical_DTU_Dataset)
 
         cmd = f"python {os.path.join(os.getcwd(), 'evaluation', 'DTU', 'eval_code', 'eval.py')} --data {result_mesh_file} --scan {scan_num} --mode mesh --dataset_dir {Offical_DTU_Dataset} --vis_out_dir {vis_out_dir}"
@@ -155,12 +156,14 @@ def run_DTU_POC(args):
         # =============================================================================
         #  Evaluate After ICP
         # =============================================================================
-        icp_out_dir = os.path.join(exp_path, f"{scan_num}_ICP")
+        icp_out_dir = os.path.join(exp_path, str(scan_num), "with_ICP")
         Path(icp_out_dir).mkdir(parents=True, exist_ok=True)
-        icp_vis_out_dir = os.path.join(exp_path, f"{scan_num}_ICP")
+        icp_vis_out_dir = os.path.join(exp_path, str(scan_num), "with_ICP")
         Path(icp_vis_out_dir).mkdir(parents=True, exist_ok=True)
-        icp_result_mesh_file = os.path.join(icp_out_dir, f"{dataset_string}_scan{scan_num}.ply")
+        icp_result_mesh_file = os.path.join(icp_out_dir, f"{dataset_string}_scan{scan_num}_ICP.ply")
 
+        #TODO: improve this function
+        run_icp(result_mesh_file, Offical_DTU_Dataset, scan_num, icp_result_mesh_file)
 
         cmd = f"python {os.path.join(os.getcwd(), 'evaluation', 'DTU', 'eval_code', 'eval.py')} --data {icp_result_mesh_file} --scan {scan_num} --mode mesh --dataset_dir {Offical_DTU_Dataset} --vis_out_dir {icp_vis_out_dir}"
         output = subprocess.check_output(cmd, shell=True).decode("utf-8")
@@ -187,4 +190,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     GS_port_orig = args.GS_port
 
-    run_DTU_POC(args)
+    run_DTU_eval(args)

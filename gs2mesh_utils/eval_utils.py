@@ -12,7 +12,7 @@ import numpy as np
 base_dir = os.path.abspath(os.path.join(__file__, '..', '..'))
 
 csv_headers = {
-    'DTU': ['Scan Number', 'd2s', 's2d', 'f1'],
+    'DTU': ['Scan Number', 'd2s', 's2d', 'chamfer distance'],
     'TNT': ['Scan Name', 'Precision', 'Recall', 'F1 Score'],
     'MobileBrick': ['Scan Name', 'Chamfer Distance', 'Accuracy (2.5mm)', 'Recall (2.5mm)', 'F1 Score (2.5mm)', 'Accuracy (5mm)', 'Recall (5mm)', 'F1 Score (5mm)']
 }

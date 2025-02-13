@@ -13,11 +13,13 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from shutil import copyfile
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from gs2mesh_utils.eval_utils import create_strings
 from gs2mesh_utils.argument_utils import ArgParser
 from gs2mesh_utils.eval_utils import prepare_eval, write_to_csv
 from third_party.DLNR.core.utils.frame_utils import readPFM, writePFM
-from poc_run_dtu import run_DTU_mesh_creation
+from poc_run_dtu import run_DTU_mesh_creation, all_train_scans, test_scans_nums
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 base_dir = os.path.abspath(os.getcwd())
@@ -93,8 +95,8 @@ def convert_gt_depth_to_disparities(args, strings):
     # =============================================================================
     paths_dict = create_paths(args, strings)
 
-    with open(args.camera_data_files) as camera_data_file:
-        camera_data = json.load(camera_data_file)
+    with open(args.camera_data_file) as cam_data_file:
+        camera_data = json.load(cam_data_file)
 
     # set parameters
     baseline = camera_data[args.cam_idx]["left"]["baseline"]
@@ -133,6 +135,18 @@ def convert_gt_depth_to_disparities(args, strings):
 
     save_disparity_for_ds(args, paths_dict, masked_gt_disparity)
 
+    # if (args.cam_idx == 58):
+    #     plt.imsave(("plots/gt_depth_map.png"), gt_depth_map)
+    #     plt.imsave(("plots/generated_disparity.png"), generated_disparity)
+    #     plt.imsave(("plots/segmentation_mask.png"), segmentation_mask)
+    #     plt.imsave(("plots/occlusion_mask.png"), occlusion_mask)
+    #     plt.imsave(("plots/valid_mask.png"), valid_mask)
+    #     plt.imsave(("plots/scaled_gt_disparity.png"), scaled_gt_disparity)
+    #     plt.imsave(("plots/difference_mask.png"), difference_mask)
+    #     plt.imsave(("plots/final_mask.png"), final_mask)
+    #     plt.imsave(("plots/masked_gt_disparity.png"), masked_gt_disparity)
+
+
 def copy_renders_to_ds_folder(args, strings):
     # =============================================================================
     #  Copy the left and right renders from the generated folder to the DS folder
@@ -154,19 +168,30 @@ def create_DTU_data_for_finetune(args):
     # =============================================================================
     #  Create GT disparities
     # =============================================================================
-    args.dataset_name = "DTU_test"
+
+    if args.scans == [0]:
+        args.scans = all_train_scans()
+    if args.scans == [-1]:
+        args.scans = test_scans_nums
+
     args.data_for_finetune_root = "data_for_finetune"
     args.skip_create_mesh = False
 
-    for scan_num in args.scans:
+    scans_to_run = args.scans
+
+    for scan_num in scans_to_run:
         # =============================================================================
         #  Create Data for Fintune for Single Scan
         # =============================================================================
-        print(f"----START PROCESSING SCAN {scan_num}----")
+        print(f"----START Create Data for Fintune SCAN {scan_num}----")
+        
+        args.scans = [scan_num]
+        args.dataset_name = "DTU_test" if scan_num in test_scans_nums else "DTU_train"
         args.colmap_name = f"scan{scan_num}"
         strings = create_strings(args)
-        strings["output_for_finetune_dir_root"] = strings["output_for_finetune_dir_root"].replace("output", "output_for_finetune")
-
+        strings["output_for_finetune_dir_root"] = strings["output_dir_root"].replace("output", "output_for_finetune")        
+        args.camera_data_file = os.path.join(strings["output_for_finetune_dir_root"], "camera_data.json")
+        
         # =============================================================================
         #  Create Mesh from Scan for the Finetuning
         # =============================================================================
@@ -174,11 +199,10 @@ def create_DTU_data_for_finetune(args):
             run_DTU_mesh_creation(args)
 
         #get number of cameras in this scan
-        cameras_data_file = os.path.join(strings["output_for_finetune_dir_root"], "camera_data.json")
-        with open(cameras_data_file) as camera_data_file:
-            camera_data = json.load(camera_data_file)
-        args.camera_data_file = cameras_data_file
+        with open(args.camera_data_file) as cam_data_file:
+            camera_data = json.load(cam_data_file)
         args.cams_num = len(camera_data)
+
 
         #process and copy data to final DS
         for cam_idx in range(args.cams_num):
