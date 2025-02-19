@@ -89,7 +89,7 @@ def save_disparity_for_ds(args, paths_dict, gt_disparity):
     plt.imsave((out_file_path + ".png"), normalized_gt_disparity)
 
 
-def convert_gt_depth_to_disparities(args, strings):
+def convert_gt_depth_to_disparities(args, strings, difference_mask_threshold = 30):
     # =============================================================================
     #  Convert GT depths to disparities
     # =============================================================================
@@ -122,29 +122,26 @@ def convert_gt_depth_to_disparities(args, strings):
     scaled_gt_disparity[valid_mask] = (fx * baseline * scaling_factor) / gt_depth_map[valid_mask]
 
     # Mask out areas with large differences between scaled and generated disparities
-    threshold = 5  # Set a threshold for large differences
-    difference_mask = np.abs(scaled_gt_disparity - generated_disparity) <= threshold
+    difference_mask = np.abs(scaled_gt_disparity - generated_disparity) <= difference_mask_threshold
     final_mask = valid_mask & difference_mask
     
     # Apply final mask to outputs
-    # masked_gt_disparity = np.where(final_mask, scaled_gt_disparity, np.NaN)
-    # masked_generated_disparity = np.where(final_mask, generated_disparity, np.NaN)
-    # CHANGED TO 0 BACKGROUND BECAUSE OF ISSUES WITH DLNR
     masked_gt_disparity = np.where(final_mask, scaled_gt_disparity, 0)
     masked_generated_disparity = np.where(final_mask, generated_disparity, 0)
 
     save_disparity_for_ds(args, paths_dict, masked_gt_disparity)
 
-    # if (args.cam_idx == 58):
-    #     plt.imsave(("plots/gt_depth_map.png"), gt_depth_map)
-    #     plt.imsave(("plots/generated_disparity.png"), generated_disparity)
-    #     plt.imsave(("plots/segmentation_mask.png"), segmentation_mask)
-    #     plt.imsave(("plots/occlusion_mask.png"), occlusion_mask)
-    #     plt.imsave(("plots/valid_mask.png"), valid_mask)
-    #     plt.imsave(("plots/scaled_gt_disparity.png"), scaled_gt_disparity)
-    #     plt.imsave(("plots/difference_mask.png"), difference_mask)
-    #     plt.imsave(("plots/final_mask.png"), final_mask)
-    #     plt.imsave(("plots/masked_gt_disparity.png"), masked_gt_disparity)
+    if (args.cam_idx == 4):
+        os.makedirs("plots", exist_ok=True)
+        plt.imsave(("plots/gt_depth_map.png"), gt_depth_map)
+        plt.imsave(("plots/generated_disparity.png"), generated_disparity)
+        plt.imsave(("plots/segmentation_mask.png"), segmentation_mask)
+        plt.imsave(("plots/occlusion_mask.png"), occlusion_mask)
+        plt.imsave(("plots/valid_mask.png"), valid_mask)
+        plt.imsave(("plots/scaled_gt_disparity.png"), scaled_gt_disparity)
+        plt.imsave(("plots/difference_mask.png"), difference_mask)
+        plt.imsave(("plots/final_mask.png"), final_mask)
+        plt.imsave(("plots/masked_gt_disparity.png"), masked_gt_disparity)
 
 
 def copy_renders_to_ds_folder(args, strings):
@@ -175,7 +172,7 @@ def create_DTU_data_for_finetune(args):
         args.scans = test_scans_nums
 
     args.data_for_finetune_root = "data_for_finetune"
-    args.skip_create_mesh = False
+    args.skip_create_mesh = True
 
     scans_to_run = args.scans
 

@@ -176,7 +176,8 @@ def train(args):
             if total_steps % validation_frequency == validation_frequency - 1:
 
                 #TODO: delete
-                dir_name=f"lr{args.lr}_batch{args.batch_size}_train_iters{args.train_iters}"
+                # dir_name=f"lr{args.lr}_batch{args.batch_size}_train_iters{args.train_iters}"
+                dir_name = args.name
                 os.makedirs(Path(f'checkpoints/{dir_name}'), exist_ok=True)
 
 

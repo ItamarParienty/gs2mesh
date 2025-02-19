@@ -309,16 +309,18 @@ class Middlebury(StereoDataset):
         #     self.disparity_list += [disp]
 
 class GS2MESH_DTU(StereoDataset):
-    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="test", scan_name="scan105"):
+    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="test", scans=[105]):
         super(GS2MESH_DTU, self).__init__(aug_params, sparse=True)
 
-        print(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png"))
-        left_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png")))
-        right_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "right", "img*.png")))
-        disp_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "disp", "img*.png")))
-        for img1, img2, disp in zip(left_imgs_list, right_imgs_list, disp_list):
-            self.image_list += [[img1, img2]]
-            self.disparity_list += [disp]
+        for scan in scans:
+            scan_name = f"scan{scan}"
+            print(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png"))
+            left_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png")))
+            right_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "right", "img*.png")))
+            disp_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "disp", "img*.png")))
+            for img1, img2, disp in zip(left_imgs_list, right_imgs_list, disp_list):
+                self.image_list += [[img1, img2]]
+                self.disparity_list += [disp]
 
 
 def fetch_dataloader(args):
@@ -355,7 +357,7 @@ def fetch_dataloader(args):
             new_dataset = TartanAir(aug_params, keywords=dataset_name.split('_')[2:])
             logging.info(f"Adding {len(new_dataset)} samples from Tartain Air")
         elif dataset_name.startswith('gs2mesh_ds'):
-            new_dataset = GS2MESH_DTU(aug_params)
+            new_dataset = GS2MESH_DTU(aug_params, scans=args.scans)
             logging.info(f"Adding {len(new_dataset)} samples from gs2mesh")
         train_dataset = new_dataset if train_dataset is None else train_dataset + new_dataset
 
