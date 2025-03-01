@@ -13,13 +13,15 @@ import numpy as np
 from tqdm import tqdm
 
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(osp.abspath(osp.join(__file__, "..", "..", "third_party", "DLNR", "core")))
+sys.path.append(osp.abspath(osp.join(__file__, "..", "..", "third_party", "DLNR")))
+
 from gs2mesh_utils.eval_utils import create_strings
 from gs2mesh_utils.argument_utils import ArgParser
 from gs2mesh_utils.eval_utils import prepare_eval, write_to_csv
 from third_party.DLNR.core.utils.frame_utils import readPFM, writePFM
 
-sys.path.append(osp.abspath(osp.join(__file__, "../", "third_party", "DLNR")))
-sys.path.append(osp.abspath(osp.join(__file__, "../", "third_party", "DLNR", "core")))
 from third_party.DLNR.core.dlnr import DLNR
 from third_party.DLNR.core.stereo_datasets import StereoDataset
 from third_party.DLNR.core.utils.utils import InputPadder as DLNR_InputPadder
@@ -34,18 +36,22 @@ def load_dlnr_model(args):
     #  Load dlnr stereo model and weights
     # =============================================================================
     DLNR_args = Namespace(
-        name="DLNR_Finetuned",
+        name=f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}",
         restore_ckpt=osp.join(base_dir, "third_party", "DLNR", "pretrained", "DLNR_Middlebury.pth"),
+        # mixed_precision=False,
         mixed_precision=True,
         batch_size=4,
         train_datasets=["gs2mesh_ds"],
+        # lr=0.0001,
         lr=2e-5,
-        num_steps=10000,
+        num_steps=4000,
+        # num_steps=10000,
         image_size=[384, 736],
         train_iters=22,
         wdecay=0.00001,
         valid_iters=32,
         corr_implementation="reg_cuda",
+        # shared_backbone=True,
         shared_backbone=False,
         corr_levels=4,
         corr_radius=4,
@@ -54,11 +60,14 @@ def load_dlnr_model(args):
         n_gru_layers=3,
         hidden_dims=[128] * 3,
         img_gamma=None,
+        # saturation_range=None,
         saturation_range=[0, 1.4],
         do_flip=False,
+        # spatial_scale=[0, 0],
         spatial_scale=[-0.2, 0.4],
         noyjitter=False,
         dataset="gs2mesh_ds",
+        scans = args.scans
     )
 
     return DLNR_args
@@ -79,7 +88,8 @@ def finetune_stereo_model(args):
     # =============================================================================
 
     # rename event file
-    new_event_file_name = f"lr{DLNR_args.lr}_batch{DLNR_args.batch_size}_train_iters{DLNR_args.train_iters}"
+    # new_event_file_name = f"lr{DLNR_args.lr}_batch{DLNR_args.batch_size}_train_iters{DLNR_args.train_iters}"
+    new_event_file_name = f"DLNR_Finetuned_{''.join([str(scan) for scan in args.scans]+'_')}"
     new_event_file_path = os.path.join(os.path.dirname(event_file_path), f"{new_event_file_name}.0")
     os.rename(event_file_path, new_event_file_path)
 

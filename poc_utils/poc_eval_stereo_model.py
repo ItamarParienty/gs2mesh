@@ -12,12 +12,12 @@ import numpy as np
 import open3d as o3d
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..', 'evaluation', 'DTU', 'eval_code')))
 
 from poc_run_single import run_single
 from gs2mesh_utils.argument_utils import ArgParser
 from gs2mesh_utils.eval_utils import prepare_eval, write_to_csv, create_strings
 
-sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..', 'evaluation', 'DTU', 'eval_code')))
 from evaluate_single_scene import cull_scan
 base_dir = os.path.abspath(os.getcwd())
 
