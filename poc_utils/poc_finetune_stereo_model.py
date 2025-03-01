@@ -89,7 +89,7 @@ def finetune_stereo_model(args):
 
     # rename event file
     # new_event_file_name = f"lr{DLNR_args.lr}_batch{DLNR_args.batch_size}_train_iters{DLNR_args.train_iters}"
-    new_event_file_name = f"DLNR_Finetuned_{''.join([str(scan) for scan in args.scans]+'_')}"
+    new_event_file_name = f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}"
     new_event_file_path = os.path.join(os.path.dirname(event_file_path), f"{new_event_file_name}.0")
     os.rename(event_file_path, new_event_file_path)
 

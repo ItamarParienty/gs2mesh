@@ -206,12 +206,13 @@ def train(args):
             logging.info(f"Saving file {save_path}")
             torch.save(model.state_dict(), save_path)
 
+    run_file_path = logger.writer.file_writer.event_writer._file_name
     print("FINISHED TRAINING")
     logger.close()
     PATH = 'checkpoints/%s.pth' % args.name
     torch.save(model.state_dict(), PATH)
 
-    return PATH, logger.writer.file_writer.event_writer._file_name
+    return PATH, run_file_path
 
 
 if __name__ == '__main__':
