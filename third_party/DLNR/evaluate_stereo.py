@@ -212,12 +212,12 @@ def validate_middlebury(model, iters=32, split='F', mixed_prec=False):
     return {f'middlebury{split}-epe': epe, f'middlebury{split}-d1': d1}
 
 @torch.no_grad()
-def validate_gs2mesh(model, iters=32, mixed_prec=False):
+def validate_gs2mesh(model, iters=32, mixed_prec=False, scans=[]):
     print("validate_gs2mesh")
     """ Peform validation using the GS2MESH_DTU (train) split """
     model.eval()
     aug_params = {}
-    val_dataset = datasets.GS2MESH_DTU(aug_params)
+    val_dataset = datasets.GS2MESH_DTU(aug_params, scans)
 
     out_list, epe_list = [], []
     for val_id in range(len(val_dataset)):

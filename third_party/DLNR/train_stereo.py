@@ -186,7 +186,7 @@ def train(args):
                 torch.save(model.state_dict(), save_path)
 
                 if args.dataset == 'gs2mesh_ds':
-                    results = validate_gs2mesh(model.module, iters=args.valid_iters)
+                    results = validate_gs2mesh(model.module, iters=args.valid_iters, scans=args.scans)
                 else:
                     results = validate_things(model.module, iters=args.valid_iters)
 
