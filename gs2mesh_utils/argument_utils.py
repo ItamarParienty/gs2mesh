@@ -119,6 +119,12 @@ class ArgParser:
             self.parser.add_argument('--no-TSDF_use_mask', action='store_false', dest='TSDF_use_mask', help="Disable TSDF_use_mask")
         if self.dataset == 'MipNerf360':
             self.parser.add_argument('--scans', type=str, nargs='+', default=['counter', 'garden'], help='Scan names')
+        
+
+        if self.dataset == 'DTU':
+            self.parser.add_argument('--skip_create_mesh', action='store_true', help="Skips mesh creation for finetune data creation")
+            self.parser.add_argument('--difference_mask_threshold', type=int, default=30, help="Threshold for the difference mask for processing the depth maps for finetune data")
+
 
     def default_value(self, param):
         """

@@ -39,6 +39,8 @@ class Stereo:
         self.model_name = self.args.stereo_model
         self.device = device
         self.disparity_signs = {'DLNR_Middlebury': -1, 'DLNR_SceneFlow': -1, 'DLNR_Finetuned': -1}
+        if self.model_name.startswith("DLNR_Finetuned"):
+            self.disparity_signs[self.model_name] = -1
 
         if "DLNR" in self.model_name:
             restore_ckpt_path = os.path.join(self.base_dir, 'third_party', 'DLNR', 'pretrained', f'{self.model_name}.pth')

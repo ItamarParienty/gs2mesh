@@ -3,6 +3,7 @@
 # =============================================================================
 
 import os
+import sys
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,7 +51,7 @@ def run_single(args):
         create_downsampled_colmap_dir(colmap_dir, args.downsample)
         args.colmap_name = f"{args.colmap_name}_downsample{args.downsample}"
         TSDF_voxel_length=args.TSDF_voxel/512
-        colmap_dir = os.path.abspath(os.path.join(base_dir,'data',args.dataset_name,args.colmap_name))
+        colmap_dir = os.path.abspath(os.path.join(base_dir, data_root_dir, args.dataset_name, args.colmap_name))
         strings = create_strings(args)
     # =============================================================================
     #  Run COLMAP with unknown poses

@@ -11,6 +11,7 @@ import sys
 from glob import glob
 import numpy as np
 from tqdm import tqdm
+import shutil
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -38,20 +39,17 @@ def load_dlnr_model(args):
     DLNR_args = Namespace(
         name=f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}",
         restore_ckpt=osp.join(base_dir, "third_party", "DLNR", "pretrained", "DLNR_Middlebury.pth"),
-        # mixed_precision=False,
         mixed_precision=True,
         batch_size=4,
         train_datasets=["gs2mesh_ds"],
-        # lr=0.0001,
-        lr=2e-5,
+        lr=0.0001,
+        # lr=2e-5,
         num_steps=4000,
-        # num_steps=10000,
         image_size=[384, 736],
         train_iters=22,
         wdecay=0.00001,
         valid_iters=32,
         corr_implementation="reg_cuda",
-        # shared_backbone=True,
         shared_backbone=False,
         corr_levels=4,
         corr_radius=4,
@@ -60,10 +58,8 @@ def load_dlnr_model(args):
         n_gru_layers=3,
         hidden_dims=[128] * 3,
         img_gamma=None,
-        # saturation_range=None,
         saturation_range=[0, 1.4],
         do_flip=False,
-        # spatial_scale=[0, 0],
         spatial_scale=[-0.2, 0.4],
         noyjitter=False,
         dataset="gs2mesh_ds",
@@ -83,12 +79,15 @@ def finetune_stereo_model(args):
     DLNR_args = load_dlnr_model(args)
     checkpoints_path, event_file_path = train(DLNR_args)
 
+    # copy last checkpoint model to pretrained folder
+    pretraind_path = osp.join(base_dir, "third_party", "DLNR", "pretrained", (f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}.pth"))
+    shutil.copy2(checkpoints_path, pretraind_path)
+
     # =============================================================================
     #  Plot Loss Graph
     # =============================================================================
 
     # rename event file
-    # new_event_file_name = f"lr{DLNR_args.lr}_batch{DLNR_args.batch_size}_train_iters{DLNR_args.train_iters}"
     new_event_file_name = f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}"
     new_event_file_path = os.path.join(os.path.dirname(event_file_path), f"{new_event_file_name}.0")
     os.rename(event_file_path, new_event_file_path)

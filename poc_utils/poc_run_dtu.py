@@ -42,7 +42,7 @@ def move_dir(src_dir_path, dst_dir_path):
     dst_dir_parent_path = os.path.dirname(dst_dir_path)
 
     if os.path.exists(dst_dir_path):
-            shutil.rmtree(dst_dir_path)
+        shutil.rmtree(dst_dir_path)
     Path(dst_dir_parent_path).mkdir(parents=True, exist_ok=True)
     shutil.move(src_dir_path, dst_dir_parent_path)
 
@@ -63,8 +63,8 @@ def set_poc_args(args, scan_num):
     args.dataset_name = "DTU_test" if scan_num in test_scans_nums else "DTU_train"
 
     # TODO: delete
-    args.skip_colmap = True
-    args.skip_GS = True
+    # args.skip_colmap = True
+    # args.skip_GS = True
     # args.skip_rendering = True
     # args.skip_masking = True
     return args
