@@ -94,7 +94,7 @@ def create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_D
     # if didn't ran the GS, there will be no splatting_output dir, 
     # but there may be one from previous run in the splatting_output_for_eval dir so we move it to the output dir
     if (not os.path.exists(splatting_output_dir_root)) and (args.skip_GS) and (os.path.exists(splatting_output_for_eval_dir_root)):
-            move_dir(splatting_output_for_eval_dir_root, os.path.dirname(splatting_output_dir_root))
+            move_dir(splatting_output_for_eval_dir_root, splatting_output_dir_root)
 
     ply_file = run_single(args)
 
@@ -105,7 +105,7 @@ def create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_D
     # if didn't ran the create mesh, there will be no output dir, 
     # but there may be one from previous run in the output_for_eval dir so we move it to the output dir
     if (not os.path.exists(output_dir_root)) and (os.path.exists(output_for_eval_dir_root)):
-            move_dir(output_for_eval_dir_root, os.path.dirname(output_dir_root))
+            move_dir(output_for_eval_dir_root, output_dir_root)
 
     # =============================================================================
     #  Evaluate Before ICP
@@ -145,8 +145,8 @@ def create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_D
     #  Move Outputs Folders to Avoid Clashes
     # =============================================================================
     
-    move_dir(output_dir_root, os.path.dirname(output_for_eval_dir_root))
-    move_dir(splatting_output_dir_root, os.path.dirname(splatting_output_for_eval_dir_root))
+    move_dir(output_dir_root, output_for_eval_dir_root)
+    move_dir(splatting_output_dir_root, splatting_output_for_eval_dir_root)
 
 
 def run_DTU_eval(args):

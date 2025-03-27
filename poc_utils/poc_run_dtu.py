@@ -30,6 +30,7 @@ specific_prompts = {
     22: "building",
     43: "building",
     46: "building",
+    63: "bowl_of_fruits",
     103: "pig",
 }
 

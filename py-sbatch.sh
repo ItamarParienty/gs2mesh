@@ -16,13 +16,31 @@
 ###
 # Parameters for sbatch
 #
+
+
+
 NUM_NODES=1
 NUM_CORES=2
 NUM_GPUS=1
 NODE_NAME="gipdeep10"
-JOB_NAME="gs2mesh"
-MAIL_USER="itamarp@campus.technion.com"
-MAIL_TYPE=ALL # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
+JOB_NAME=$(basename $1 .py)
+MAIL_USER="itamarp@campus.technion.ac.il"
+MAIL_TYPE=END,FAIL # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
+
+
+# Default scans value (in case --scans is not provided)
+SCANS_VALUE=""
+
+# Parse command-line arguments to find --scans value
+for arg in "$@"; do
+    if [[ $arg == --scans=* ]]; then
+        SCANS_VALUE="${arg#--scans=}" # Extract value after "--scans="
+    fi
+done
+
+# Append scans value to job name
+JOB_NAME="${JOB_NAME}_scans${SCANS_VALUE}"
+
 
 ###
 # Conda parameters

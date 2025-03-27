@@ -124,6 +124,7 @@ class ArgParser:
         if self.dataset == 'DTU':
             self.parser.add_argument('--skip_create_mesh', action='store_true', help="Skips mesh creation for finetune data creation")
             self.parser.add_argument('--difference_mask_threshold', type=int, default=30, help="Threshold for the difference mask for processing the depth maps for finetune data")
+            self.parser.add_argument('--trained_model_name', type=str, default='DLNR_Finetuned', help='Name of the finetuned model')
 
 
     def default_value(self, param):
