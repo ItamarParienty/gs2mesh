@@ -33,6 +33,16 @@ base_dir = os.path.abspath(os.getcwd())
 # =============================================================================
 test_scans_nums = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
 
+test_scans_by_class = {
+    "DLNR_Finetuned_Full" : test_scans_nums,
+    "DLNR_Finetuned_Figures" : [55, 69, 83, 105, 106, 110, 114, 118, 122],
+    "DLNR_Finetuned_Food" : [63, 97],
+    "DLNR_Finetuned_Buildings" : [24],
+    "DLNR_Finetuned_Hardware_Materials" : [37, 40],
+    "DLNR_Finetuned_Body_Parts" : [65],
+}
+
+
 def all_train_scans():
     all_scans = chain(range(1, 78), range(82, 129))
     return [scan for scan in all_scans if scan not in test_scans_nums]

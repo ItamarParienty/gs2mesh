@@ -309,7 +309,7 @@ class Middlebury(StereoDataset):
         #     self.disparity_list += [disp]
 
 class GS2MESH_DTU(StereoDataset):
-    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="test", scans=[]):
+    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="train", scans=[]):
         super(GS2MESH_DTU, self).__init__(aug_params, sparse=True)
 
         for scan in scans:

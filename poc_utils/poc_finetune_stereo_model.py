@@ -12,6 +12,7 @@ from glob import glob
 import numpy as np
 from tqdm import tqdm
 import shutil
+from itertools import chain
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -28,18 +29,28 @@ from third_party.DLNR.core.stereo_datasets import StereoDataset
 from third_party.DLNR.core.utils.utils import InputPadder as DLNR_InputPadder
 from third_party.DLNR.train_stereo import train
 from poc_show_train_results import plot_loss
-from poc_run_dtu import test_scans_nums, all_train_scans
+# from poc_run_dtu import test_scans_nums, all_train_scans
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 base_dir = osp.abspath(os.getcwd())
 
-scans_by_class = {
-    "DLNR_Finetuned_Full" : all_train_scans(),
-    "figures" : [2, 3, 4, 7, 33]
+test_scans_nums = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
+def all_train_scans():
+    all_scans = chain(range(1, 78), range(82, 129))
+    return [scan for scan in all_scans if scan not in test_scans_nums]
 
+train_scans_by_class = {
+    "DLNR_Finetuned_Full" : all_train_scans(),
+    "DLNR_Finetuned_Full_lr2e_5" : all_train_scans(),
+    "DLNR_Finetuned_Full_lr1e_5" : all_train_scans(),
+    "DLNR_Finetuned_Figures" : [2, 3, 4, 7, 33, 49, 50, 56, 57, 58, 70, 71, 72, 82, 84, 103, 107, 108, 109, 111, 112, 113, 115, 116, 117, 119, 120, 121, 123, 124, 125],
+    "DLNR_Finetuned_Food" : [5, 12, 30, 31, 32, 42, 45, 59, 60, 61, 64, 74, 75, 76, 93, 94, 95, 96, 97, 99, 100],
+    "DLNR_Finetuned_Buildings" : [6, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 43, 44, 46, 73],
+    "DLNR_Finetuned_Hardware_Materials" : [10, 13, 34, 35, 36, 38, 39, 126, 127, 128],
+    "DLNR_Finetuned_Body_Parts" : [52, 53, 66, 67, 68, 85, 86, 87, 88, 89, 90, 91, 92 ],
 }
 
-def load_dlnr_model(args):
+def load_dlnr_finetune_args(args):
     # =============================================================================
     #  Load dlnr stereo model and weights
     # =============================================================================
@@ -50,9 +61,9 @@ def load_dlnr_model(args):
         mixed_precision=True,
         batch_size=4,
         train_datasets=["gs2mesh_ds"],
-        lr=0.0001,
-        # lr=2e-5,
-        num_steps=4000,
+        # lr=0.0001,
+        lr=1e-5,
+        num_steps=100000,
         image_size=[384, 736],
         train_iters=22,
         wdecay=0.00001,
@@ -81,13 +92,14 @@ def finetune_stereo_model(args):
     # =============================================================================
     #  Load model and DS
     # =============================================================================
-    if (args.trained_model_name in scans_by_class):
-        args.scans = scans_by_class[args.trained_model_name]
+    if (args.trained_model_name in train_scans_by_class):
+        args.scans = train_scans_by_class[args.trained_model_name]
 
     args.dataset_name = "DTU_test" if args.scans[0] in test_scans_nums else "DTU_train"
     args.stereo_model = "DLNR_Finetuned"
 
-    DLNR_args = load_dlnr_model(args)
+    DLNR_args = load_dlnr_finetune_args(args)
+    print(DLNR_args.scans)
     checkpoints_path, event_file_path = train(DLNR_args)
 
     # copy last checkpoint model to pretrained folder
