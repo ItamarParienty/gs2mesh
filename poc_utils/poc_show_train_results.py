@@ -3,15 +3,16 @@ from matplotlib import pyplot as plt
 import os
 import argparse
 
-def plot_loss(run_file_name):
+def plot_loss(run_file_path):
     # Path to your events file
-    event_file = f"runs/{run_file_name}.0"
+    # event_file = f"runs/{run_file_name}.0"
+    run_file_name = os.path.basename(run_file_path)
 
     # Extract and print losses
     # Extract losses and steps
     steps = []
     losses = []
-    for e in tf.compat.v1.train.summary_iterator(event_file):
+    for e in tf.compat.v1.train.summary_iterator(run_file_path):
         for v in e.summary.value:
             if "loss" in v.tag:  # Adjust the tag if necessary
                 steps.append(e.step)
@@ -36,6 +37,6 @@ def plot_loss(run_file_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--run_file', help="name of run filw to plot")
+    parser.add_argument('--run_file', help="path of run file to plot")
     args = parser.parse_args()
     plot_loss(args.run_file)

@@ -35,6 +35,7 @@ test_scans_nums = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 
 
 test_scans_by_class = {
     "DLNR_Finetuned_Full" : test_scans_nums,
+    "DLNR_Finetuned_Full_New_HP" : [105],
     "DLNR_Finetuned_Figures" : [55, 69, 83, 105, 106, 110, 114, 118, 122],
     "DLNR_Finetuned_Food" : [63, 97],
     "DLNR_Finetuned_Buildings" : [24],
@@ -60,7 +61,6 @@ def run_icp(src_mesh_file, gt_dataset_dir, scan, icp_result_mesh_file):
     ms.load_new_mesh(src_mesh_file)
     
     # apply icp:
-    # ms.apply_filter('icp_between_meshes')
     matrix = ms.apply_filter('compute_matrix_by_icp_between_meshes')
 
     # Extract the transformation matrix from the ICP computation
@@ -72,10 +72,6 @@ def run_icp(src_mesh_file, gt_dataset_dir, scan, icp_result_mesh_file):
     print(icp_matrix)
 
     # Apply the transformation matrix to the source mesh
-    # ms.apply_filter("transform_matrix",
-    #     transformationmatrix=icp_matrix.flatten().tolist(),  # Convert 4x4 to 1D list
-    #     applyto=1  # Apply to the source mesh
-    # )
     ms.apply_filter("apply_matrix_freeze")
 
     # save aligned mesh
@@ -175,23 +171,33 @@ def run_DTU_eval(args):
     args.masker_automask = True
     args.masker_SAM2_local = False
     args.masker_prompt = 'main_object'
+    # args.masker_prompt = 'food_packages'
     skip_GS = args.skip_GS
+
+    if (args.stereo_model in test_scans_by_class):
+        args.scans = test_scans_by_class[args.stereo_model]
+
 
     # =============================================================================
     #  Create meshes and evaluate
     # =============================================================================
     for scan_num in args.scans:
-        #run and eval original model
-        args.stereo_model = "DLNR_Middlebury"
         args.skip_GS = skip_GS
         dataset_string, exp_path, csv_file = prepare_eval(args)
         create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
 
-        #run and eval finetuned model
-        args.stereo_model = f"DLNR_Finetuned_scan{scan_num}"
-        args.skip_GS = True
-        dataset_string, exp_path, csv_file = prepare_eval(args)
-        create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
+        
+        # #run and eval original model
+        # args.stereo_model = "DLNR_Middlebury"
+        # args.skip_GS = skip_GS
+        # dataset_string, exp_path, csv_file = prepare_eval(args)
+        # create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
+
+        # #run and eval finetuned model
+        # args.stereo_model = f"DLNR_Finetuned_scan{scan_num}"
+        # args.skip_GS = True
+        # dataset_string, exp_path, csv_file = prepare_eval(args)
+        # create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
         
 
 

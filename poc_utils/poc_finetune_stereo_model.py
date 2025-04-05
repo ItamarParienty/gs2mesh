@@ -41,8 +41,7 @@ def all_train_scans():
 
 train_scans_by_class = {
     "DLNR_Finetuned_Full" : all_train_scans(),
-    "DLNR_Finetuned_Full_lr2e_5" : all_train_scans(),
-    "DLNR_Finetuned_Full_lr1e_5" : all_train_scans(),
+    "DLNR_Finetuned_Full_New_HP" : all_train_scans(),
     "DLNR_Finetuned_Figures" : [2, 3, 4, 7, 33, 49, 50, 56, 57, 58, 70, 71, 72, 82, 84, 103, 107, 108, 109, 111, 112, 113, 115, 116, 117, 119, 120, 121, 123, 124, 125],
     "DLNR_Finetuned_Food" : [5, 12, 30, 31, 32, 42, 45, 59, 60, 61, 64, 74, 75, 76, 93, 94, 95, 96, 97, 99, 100],
     "DLNR_Finetuned_Buildings" : [6, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 43, 44, 46, 73],
@@ -113,11 +112,13 @@ def finetune_stereo_model(args):
 
     # rename event file
     # new_event_file_name = f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}"
-    new_event_file_name = args.trained_model_name
-    new_event_file_path = os.path.join(os.path.dirname(event_file_path), f"{new_event_file_name}.0")
-    os.rename(event_file_path, new_event_file_path)
+    new_event_file_dir_name = args.trained_model_name
+    new_event_file_path = os.path.join(new_event_file_dir_name, os.path.basename(event_file_path))
+    # new_event_file_path = os.path.join(os.path.dirname(event_file_path), f"{new_event_file_name}.0")
+    os.makedirs(new_event_file_dir_name, exist_ok=True)
+    shutil.move(event_file_path, new_event_file_dir_name)
 
-    plot_loss(new_event_file_name)
+    plot_loss(new_event_file_path)
 
 
 # =============================================================================
