@@ -32,10 +32,10 @@ base_dir = os.path.abspath(os.getcwd())
 #  Run
 # =============================================================================
 test_scans_nums = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
+temp_test_scans_nums = [40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
 
 test_scans_by_class = {
     "DLNR_Finetuned_Full" : test_scans_nums,
-    "DLNR_Finetuned_Full_New_HP" : [105],
     "DLNR_Finetuned_Figures" : [55, 69, 83, 105, 106, 110, 114, 118, 122],
     "DLNR_Finetuned_Food" : [63, 97],
     "DLNR_Finetuned_Buildings" : [24],
@@ -154,7 +154,6 @@ def create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_D
     move_dir(output_dir_root, output_for_eval_dir_root)
     move_dir(splatting_output_dir_root, splatting_output_for_eval_dir_root)
 
-
 def run_DTU_eval(args):
 
     # =============================================================================
@@ -176,7 +175,8 @@ def run_DTU_eval(args):
 
     if (args.stereo_model in test_scans_by_class):
         args.scans = test_scans_by_class[args.stereo_model]
-
+    if ("DLNR_Finetuned_Full" in args.stereo_model and args.stereo_model != "DLNR_Finetuned_Full"):
+        args.scans = temp_test_scans_nums
 
     # =============================================================================
     #  Create meshes and evaluate

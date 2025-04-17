@@ -3,10 +3,10 @@ from matplotlib import pyplot as plt
 import os
 import argparse
 
-def plot_loss(run_file_path):
+def plot_loss(run_file_path, model_name):
     # Path to your events file
     # event_file = f"runs/{run_file_name}.0"
-    run_file_name = os.path.basename(run_file_path)
+    # run_file_name = os.path.basename(run_file_path)
 
     # Extract and print losses
     # Extract losses and steps
@@ -23,14 +23,14 @@ def plot_loss(run_file_path):
     plt.plot(steps, losses, label="Training Loss", color="blue", linewidth=2)
     plt.xlabel("Step", fontsize=14)
     plt.ylabel("Loss", fontsize=14)
-    plt.title(f"Training Loss {run_file_name}", fontsize=16)
+    plt.title(f"Training Loss {model_name}", fontsize=16)
     plt.legend(fontsize=12)
     plt.grid(alpha=0.3)
 
     # Save the plot to a file
     os.makedirs("loss_plots", exist_ok=True)
-    plt.savefig(f"loss_plots/{run_file_name}_loss_plot.png", dpi=300)
-    print(f"Plot saved as 'loss_plots/{run_file_name}_loss_plot.png'")
+    plt.savefig(f"loss_plots/{model_name}_loss_plot.png", dpi=300)
+    print(f"Plot saved as 'loss_plots/{model_name}_loss_plot.png'")
 
     # Show the plot (ensures it blocks execution in terminal)
     plt.show(block=True)
@@ -38,5 +38,6 @@ def plot_loss(run_file_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--run_file', help="path of run file to plot")
+    parser.add_argument('--model_name', help="name of the model")
     args = parser.parse_args()
-    plot_loss(args.run_file)
+    plot_loss(args.run_file, args.model_name)

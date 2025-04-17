@@ -309,8 +309,11 @@ class Middlebury(StereoDataset):
         #     self.disparity_list += [disp]
 
 class GS2MESH_DTU(StereoDataset):
-    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="train", scans=[]):
+    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="train", validation = False, scans=[]):
         super(GS2MESH_DTU, self).__init__(aug_params, sparse=True)
+
+        image_list =[]
+        disparity_list = []
 
         for scan in scans:
             scan_name = f"scan{scan}"
@@ -319,6 +322,17 @@ class GS2MESH_DTU(StereoDataset):
             right_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "right", "img*.png")))
             disp_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "disp", "img*.pfm")))
             for img1, img2, disp in zip(left_imgs_list, right_imgs_list, disp_list):
+                image_list += [[img1, img2]]
+                disparity_list += [disp]
+        
+        # Choose a random subset of 400 images for validation
+        state = np.random.get_state()
+        np.random.seed(1000)
+        val_idxs = set(np.random.permutation(len(disparity_list))[:400])
+        np.random.set_state(state)
+
+        for idx, ((img1, img2), disp) in enumerate(zip(image_list, disparity_list)):
+            if (validation and idx in val_idxs) or (not validation):
                 self.image_list += [[img1, img2]]
                 self.disparity_list += [disp]
 

@@ -194,7 +194,5 @@ runs/*
 GS2MESH_OLD/*
 BACKUP/*
 plots/*
-BACKUP_06_03_2025/*
-backup105_good_results/*
 slurm-gipdeep*
 scans/*

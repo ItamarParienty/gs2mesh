@@ -37,9 +37,33 @@ for arg in "$@"; do
         SCANS_VALUE="${arg#--scans=}" # Extract value after "--scans="
     fi
 done
+# JOB_NAME="${JOB_NAME}_scans${SCANS_VALUE}"
 
-# Append scans value to job name
-JOB_NAME="${JOB_NAME}_scans${SCANS_VALUE}"
+# Default trained model name value (in case --scans is not provided)
+TRAINED_MODEL_NAME_VALUE=""
+
+# Parse command-line arguments to find --scans value
+for arg in "$@"; do
+    if [[ $arg == --trained_model_name=* ]]; then
+        TRAINED_MODEL_NAME_VALUE="${arg#--trained_model_name=}" # Extract value after "--trained_model_name="
+    fi
+done
+JOB_NAME="${JOB_NAME}_${TRAINED_MODEL_NAME_VALUE}"
+
+if [[ TRAINED_MODEL_NAME_VALUE == "" ]]; then
+	# Default trained model name value (in case --scans is not provided)
+	STEREO_MODEL_VALUE=""
+
+	# Parse command-line arguments to find --scans value
+	for arg in "$@"; do
+		if [[ $arg == --stereo_model=* ]]; then
+			STEREO_MODEL_VALUE="${arg#--stereo_model=}" # Extract value after "--trained_model_name="
+		fi
+	done
+
+	# Append scans value to job name
+	JOB_NAME="${JOB_NAME}_${STEREO_MODEL_VALUE}"
+fi
 
 
 ###
