@@ -19,7 +19,7 @@ from gs2mesh_utils.eval_utils import create_strings
 from gs2mesh_utils.argument_utils import ArgParser
 from gs2mesh_utils.eval_utils import prepare_eval, write_to_csv
 from third_party.DLNR.core.utils.frame_utils import readPFM, writePFM
-# from poc_run_dtu import run_DTU_mesh_creation, all_train_scans, test_scans_nums
+from poc_run_dtu import run_DTU_mesh_creation, all_train_scans, test_scans_nums
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 base_dir = os.path.abspath(os.getcwd())
@@ -109,7 +109,8 @@ def convert_gt_depth_to_disparities(args, strings):
     occlusion_mask = np.load(paths_dict["occlusion_mask_path"])
 
     # Combine valid_mask with occlusion mask and segmentation_mask before calculating median depth
-    valid_mask = ((gt_depth_map > 0) & (occlusion_mask > 0)) & segmentation_mask
+    # valid_mask = ((gt_depth_map > 0) & (occlusion_mask > 0)) & segmentation_mask
+    valid_mask = ((gt_depth_map > 0) & (occlusion_mask > 0))
 
     # Calculate scale factor for disparity using median values
     median_gt_depth = np.median(gt_depth_map[valid_mask])
@@ -222,12 +223,13 @@ def create_DTU_data_for_finetune(args):
     #  Create GT disparities
     # =============================================================================
 
-    # if args.scans == [0]:
-    #     args.scans = all_train_scans()
-    # if args.scans == [-1]:
-    #     args.scans = test_scans_nums
+    if args.scans == [0]:
+        args.scans = all_train_scans()
+    if args.scans == [-1]:
+        args.scans = test_scans_nums
 
     args.data_for_finetune_root = "data_for_finetune"
+    args.masker_prompt="entire_connected_fruits_and_packages_group"
 
     scans_to_run = args.scans
 
@@ -239,7 +241,7 @@ def create_DTU_data_for_finetune(args):
         
         args.scans = [scan_num]
         # args.dataset_name = "DTU_test" if scan_num in test_scans_nums else "DTU_train"
-        args.dataset_name = "DTU_test"
+        args.dataset_name = "DTU_train"
         args.colmap_name = f"scan{scan_num}"
         strings = create_strings(args)
         strings["output_for_finetune_dir_root"] = strings["output_dir_root"].replace("output", "output_for_finetune")        
@@ -248,8 +250,8 @@ def create_DTU_data_for_finetune(args):
         # =============================================================================
         #  Create Mesh from Scan for the Finetuning
         # =============================================================================
-        # if not args.skip_create_mesh:
-        #     run_DTU_mesh_creation(args)
+        if not args.skip_create_mesh:
+            run_DTU_mesh_creation(args)
 
         #get number of cameras in this scan
         with open(args.camera_data_file) as cam_data_file:
@@ -258,13 +260,13 @@ def create_DTU_data_for_finetune(args):
 
 
         #process and copy data to final DS
-        args.cam_idx = 58
-        convert_gt_depth_to_disparities_new(args, strings)
-        # for cam_idx in range(args.cams_num):
-        #     print(f"----START PROCESSING CAM {cam_idx}----")
-        #     args.cam_idx = cam_idx
-        #     convert_gt_depth_to_disparities(args, strings)
-        #     copy_renders_to_ds_folder(args, strings)
+        # args.cam_idx = 58
+        # convert_gt_depth_to_disparities_new(args, strings)
+        for cam_idx in range(args.cams_num):
+            print(f"----START PROCESSING CAM {cam_idx}----")
+            args.cam_idx = cam_idx
+            convert_gt_depth_to_disparities(args, strings)
+            copy_renders_to_ds_folder(args, strings)
 
 
 # =============================================================================

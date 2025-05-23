@@ -309,33 +309,35 @@ class Middlebury(StereoDataset):
         #     self.disparity_list += [disp]
 
 class GS2MESH_DTU(StereoDataset):
-    def __init__(self, aug_params=None, root="data_for_finetune", test_or_train="train", validation = False, scans=[]):
+    def __init__(self, aug_params=None, root="data_for_finetune", train_val_test="train", scans=[]):
         super(GS2MESH_DTU, self).__init__(aug_params, sparse=True)
 
-        image_list =[]
-        disparity_list = []
+        assert train_val_test in ['train', 'val', 'test']
 
-        for scan in scans:
+        dataset_name = 'DTU_test' if train_val_test=='test' else 'DTU_train'
+        scans_to_use = scans
+        # Choose a random subset of 30% of the scans for validation
+        if train_val_test != 'test':
+            state = np.random.get_state()
+            np.random.seed(1000)
+            num_val_scans = int(np.floor(len(scans) * 0.3))
+            val_scans = random.sample(scans, num_val_scans)
+            train_scans = [s for s in scans if s not in val_scans]
+            if train_val_test == 'train':
+                scans_to_use = train_scans
+            if train_val_test == 'val':
+                scans_to_use = val_scans
+            np.random.set_state(state)
+
+        for scan in scans_to_use:
             scan_name = f"scan{scan}"
-            print(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png"))
-            left_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "left", "img*.png")))
-            right_imgs_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "right", "img*.png")))
-            disp_list = sorted(glob(osp.join(root, f"DTU_{test_or_train}", scan_name, "disp", "img*.pfm")))
+            print(osp.join(root, dataset_name, scan_name, "left", "img*.png"))
+            left_imgs_list = sorted(glob(osp.join(root, dataset_name, scan_name, "left", "img*.png")))
+            right_imgs_list = sorted(glob(osp.join(root, dataset_name, scan_name, "right", "img*.png")))
+            disp_list = sorted(glob(osp.join(root, dataset_name, scan_name, "disp", "img*.pfm")))
             for img1, img2, disp in zip(left_imgs_list, right_imgs_list, disp_list):
-                image_list += [[img1, img2]]
-                disparity_list += [disp]
-        
-        # Choose a random subset of 400 images for validation
-        state = np.random.get_state()
-        np.random.seed(1000)
-        val_idxs = set(np.random.permutation(len(disparity_list))[:400])
-        np.random.set_state(state)
-
-        for idx, ((img1, img2), disp) in enumerate(zip(image_list, disparity_list)):
-            if (validation and idx in val_idxs) or (not validation):
                 self.image_list += [[img1, img2]]
                 self.disparity_list += [disp]
-
 
 def fetch_dataloader(args):
     """ Create the data loader for the corresponding trainign set """
@@ -371,7 +373,7 @@ def fetch_dataloader(args):
             new_dataset = TartanAir(aug_params, keywords=dataset_name.split('_')[2:])
             logging.info(f"Adding {len(new_dataset)} samples from Tartain Air")
         elif dataset_name.startswith('gs2mesh_ds'):
-            new_dataset = GS2MESH_DTU(aug_params, scans=args.scans)
+            new_dataset = GS2MESH_DTU(aug_params, train_val_test='train', scans=args.scans)
             logging.info(f"Adding {len(new_dataset)} samples from gs2mesh")
         train_dataset = new_dataset if train_dataset is None else train_dataset + new_dataset
 

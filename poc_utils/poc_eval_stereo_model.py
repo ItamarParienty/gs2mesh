@@ -32,11 +32,12 @@ base_dir = os.path.abspath(os.getcwd())
 #  Run
 # =============================================================================
 test_scans_nums = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
-temp_test_scans_nums = [40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
+fragile_test_scans_nums = [24, 37, 63, 97]
 
 test_scans_by_class = {
     "DLNR_Finetuned_Full" : test_scans_nums,
-    "DLNR_Finetuned_Figures" : [55, 69, 83, 105, 106, 110, 114, 118, 122],
+    # "DLNR_Finetuned_Figures" : [55, 69, 83, 105, 106, 110, 114, 118, 122],
+    "DLNR_Finetuned_Figures" : [55, 83, 105, 106, 110, 114, 118, 122],
     "DLNR_Finetuned_Food" : [63, 97],
     "DLNR_Finetuned_Buildings" : [24],
     "DLNR_Finetuned_Hardware_Materials" : [37, 40],
@@ -152,7 +153,7 @@ def create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_D
     # =============================================================================
     
     move_dir(output_dir_root, output_for_eval_dir_root)
-    move_dir(splatting_output_dir_root, splatting_output_for_eval_dir_root)
+    # move_dir(splatting_output_dir_root, splatting_output_for_eval_dir_root)
 
 def run_DTU_eval(args):
 
@@ -170,18 +171,32 @@ def run_DTU_eval(args):
     args.masker_automask = True
     args.masker_SAM2_local = False
     args.masker_prompt = 'main_object'
-    # args.masker_prompt = 'food_packages'
     skip_GS = args.skip_GS
+    print(f"skip_GS = {skip_GS}")
+    TSDF_cleaning_threshold = args.TSDF_cleaning_threshold
 
-    if (args.stereo_model in test_scans_by_class):
-        args.scans = test_scans_by_class[args.stereo_model]
-    if ("DLNR_Finetuned_Full" in args.stereo_model and args.stereo_model != "DLNR_Finetuned_Full"):
-        args.scans = temp_test_scans_nums
+    for class_model in test_scans_by_class:         
+        if (class_model in args.stereo_model):
+            args.scans = test_scans_by_class[class_model]
 
     # =============================================================================
     #  Create meshes and evaluate
     # =============================================================================
     for scan_num in args.scans:
+        if scan_num == 24:
+            args.masker_prompt = "buildings"
+        elif scan_num == 37:
+            args.masker_prompt = "all_objects"    
+        elif scan_num == 63:
+            args.masker_prompt = "entire_connected_fruit_group"
+        elif scan_num == 97:
+            args.masker_prompt = "all_packages"
+        else:
+            args.masker_prompt = "main_object"
+
+
+        args.TSDF_cleaning_threshold = 10000 if scan_num in fragile_test_scans_nums else TSDF_cleaning_threshold
+        print(args.TSDF_cleaning_threshold)
         args.skip_GS = skip_GS
         dataset_string, exp_path, csv_file = prepare_eval(args)
         create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)

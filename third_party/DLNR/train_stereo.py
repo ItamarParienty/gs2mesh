@@ -122,14 +122,34 @@ class Logger:
 #TODO: delete:
 import os
 
+def save_lr(model_name, lr):
+    lr_file_path = f"runs/{model_name}/lr.txt"
+    with open(lr_file_path, 'w') as file:
+        file.write(f"{lr}")
+
+def save_loss(model_name, losses):
+    loss_file_path = f"runs/{model_name}/train_loss.txt"
+    with open(loss_file_path, 'a') as file:
+        for loss in losses:
+            file.write(loss)
+
+def save_val_scores(model_name, step, val_results):
+    loss_file_path = f"runs/{model_name}/val_loss.txt"
+    with open(loss_file_path, 'a') as file:
+        d1 = val_results['gs2mesh_dtu-d1']
+        epe = val_results['gs2mesh_dtu-epe']
+        file.write(f"{step},'gs2mesh_dtu-epe',{epe}\n")
+        file.write(f"{step},'gs2mesh_dtu-d1',{d1}\n")
 
 def train(args):
     model = nn.DataParallel(DLNR(args))
     print("Parameter Count: %d" % count_parameters(model))
 
+    os.makedirs(f"runs/{args.name}", exist_ok=True)
+
     train_loader = datasets.fetch_dataloader(args)
     optimizer, scheduler = fetch_optimizer(args, model)
-    total_steps = 0
+    total_steps = args.start_num_steps
     logger = Logger(model, scheduler)
 
     if args.restore_ckpt is not None:
@@ -147,6 +167,7 @@ def train(args):
 
     scaler = GradScaler(enabled=args.mixed_precision)
 
+    losses_to_save = []
     should_keep_training = True
     global_batch_num = 0
     while should_keep_training:
@@ -162,6 +183,7 @@ def train(args):
             loss, metrics = sequence_loss(flow_predictions, flow, valid)
             logger.writer.add_scalar("live_loss", loss.item(), global_batch_num)
             logger.writer.add_scalar(f'learning_rate', optimizer.param_groups[0]['lr'], global_batch_num)
+            losses_to_save += [f"{total_steps},{loss.item()}\n"]
             global_batch_num += 1
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
@@ -187,6 +209,10 @@ def train(args):
 
                 if args.dataset == 'gs2mesh_ds':
                     results = validate_gs2mesh(model.module, iters=args.valid_iters, scans=args.scans)
+                    save_val_scores(args.name, total_steps + 1, results)
+                    save_lr(args.name, optimizer.param_groups[0]['lr'])
+                    save_loss(args.name, losses_to_save)
+                    losses_to_save = []
                 else:
                     results = validate_things(model.module, iters=args.valid_iters)
 

@@ -52,17 +52,34 @@ def load_dlnr_finetune_args(args):
     # =============================================================================
     #  Load dlnr stereo model and weights
     # =============================================================================
+    restore_ckpt = osp.join(base_dir, "third_party", "DLNR", "pretrained", "DLNR_Middlebury.pth")
+    start_num_steps = 0
+
+    checkpoint_dir = osp.join(base_dir, "checkpoints", args.trained_model_name)
+    if osp.exists(checkpoint_dir):
+        checkpoint_files = os.listdir(checkpoint_dir)
+        if len(checkpoint_files) > 0:
+            checkpoint_file = checkpoint_files[-1]
+            restore_ckpt =  osp.join(checkpoint_dir, checkpoint_file)
+            start_num_steps = int(checkpoint_file.split('_')[0])
+    
+    lr = 0.0002
+    if osp.exists(f"runs/{args.trained_model_name}/lr.txt"):
+        with open(f"runs/{args.trained_model_name}/lr.txt", "r") as file:
+            lr = float(file.read())
+            assert(type(lr) == float)
+
     DLNR_args = Namespace(
-        # name=f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}",
         name=args.trained_model_name,
-        restore_ckpt=osp.join(base_dir, "third_party", "DLNR", "pretrained", "DLNR_Middlebury.pth"),
+        # restore_ckpt="/home/itamarp/gs2mesh/checkpoints/DLNR_Finetuned_Figures/40000_DLNR_Finetuned_Figures.pth",
+        restore_ckpt=restore_ckpt,
         mixed_precision=True,
         batch_size=8,
         train_datasets=["gs2mesh_ds"],
-        lr=0.0002,
-        # lr=0.0001,
-        # lr=2e-4,
+        lr=lr,
         num_steps=40000,
+        # num_steps=80000,
+        start_num_steps = start_num_steps,
         image_size=[384, 736],
         train_iters=22,
         wdecay=0.00001,
@@ -104,7 +121,6 @@ def finetune_stereo_model(args):
     checkpoints_path, event_file_path = train(DLNR_args)
 
     # copy last checkpoint model to pretrained folder
-    # pretraind_path = osp.join(base_dir, "third_party", "DLNR", "pretrained", (f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}.pth"))
     pretraind_path = osp.join(base_dir, "third_party", "DLNR", "pretrained", (f"{args.trained_model_name}.pth"))
     shutil.copy2(checkpoints_path, pretraind_path)
 
@@ -113,10 +129,8 @@ def finetune_stereo_model(args):
     # =============================================================================
 
     # rename event file
-    # new_event_file_name = f"DLNR_Finetuned_scan{'_'.join([str(scan) for scan in args.scans])}"
     new_event_file_dir_name = os.path.join('runs', args.trained_model_name)
     new_event_file_path = os.path.join(new_event_file_dir_name, os.path.basename(event_file_path))
-    # new_event_file_path = os.path.join(os.path.dirname(event_file_path), f"{new_event_file_name}.0")
     os.makedirs(new_event_file_dir_name, exist_ok=True)
     shutil.move(event_file_path, new_event_file_dir_name)
 

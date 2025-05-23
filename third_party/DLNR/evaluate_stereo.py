@@ -217,7 +217,7 @@ def validate_gs2mesh(model, iters=32, mixed_prec=False, scans=[]):
     """ Peform validation using the GS2MESH_DTU (train) split """
     model.eval()
     aug_params = {}
-    val_dataset = datasets.GS2MESH_DTU(aug_params, validation=True, scans=scans)
+    val_dataset = datasets.GS2MESH_DTU(aug_params, train_val_test='val', scans=scans)
 
     out_list, epe_list = [], []
     for val_id in range(len(val_dataset)):

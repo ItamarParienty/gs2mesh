@@ -39,7 +39,7 @@ class Stereo:
         self.model_name = self.args.stereo_model
         self.device = device
         self.disparity_signs = {'DLNR_Middlebury': -1, 'DLNR_SceneFlow': -1, 'DLNR_Finetuned': -1}
-        if self.model_name.startswith("DLNR_Finetuned"):
+        if "DLNR_Finetuned" in self.model_name:
             self.disparity_signs[self.model_name] = -1
 
         if "DLNR" in self.model_name:
