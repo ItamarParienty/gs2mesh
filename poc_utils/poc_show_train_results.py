@@ -4,11 +4,6 @@ import os
 import argparse
 
 def plot_loss(run_file_path, model_name):
-    # Path to your events file
-    # event_file = f"runs/{run_file_name}.0"
-    # run_file_name = os.path.basename(run_file_path)
-
-    # Extract and print losses
     # Extract losses and steps
     steps = []
     losses = []
