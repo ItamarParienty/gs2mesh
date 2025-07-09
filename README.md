@@ -1,5 +1,14 @@
 <p align="center">
-  <h1 align="center">GS2Mesh: Surface Reconstruction from Gaussian Splatting via Novel Stereo Views</h1>
+  <h1 align="center">Fine Tuning Stereo Neural Network via Novel Stereo Views</h1>
+  <p align="center"> Itamar Parienty · Supervisor: Yaniv Wolf</p>
+<!--   <h3 align="center"> <a href="https://arxiv.org/pdf/2404.01810">Paper (arXiv)</a> | <a href="https://gs2mesh.github.io/">Project Page</a>  </h3> -->
+  <div align="center"></div>
+</p>
+
+We present an approach to training stereo neural networks (NNs) using novel views synthesized from 3D Gaussian Splatting (GS) models. Traditional stereo datasets require precise camera calibration and advanced equipment, making them expensive to create. Our method overcomes this limitation by generating novel views using Gaussian splatting, a 3D scene reconstruction and rendering technique. By augmenting training data with synthetic stereo pairs at varying perspectives, we reduce the cost of creating the dataset and improve the model’s ability to fit the learned task. We evaluated our approach on the DTU [1] dataset (standard stereo benchmark) and demonstrated improvements in depth estimation accuracy and 3D nuances compared to models trained on conventional datasets. Our findings suggest that integrating Gaussian Splatting-based novel view synthesis into stereo training pipelines can reduce training costs and enhance performance across real-world and synthetic stereo tasks.
+
+<p align="center">
+  <h1 align="center">Original Paper:<br>GS2Mesh: Surface Reconstruction from Gaussian Splatting via Novel Stereo Views</h1>
   <p align="center"> Yaniv Wolf · Amit Bracha · Ron Kimmel</p>
   <h3 align="center">ECCV 2024</h3>
   <h3 align="center"> <a href="https://arxiv.org/pdf/2404.01810">Paper (arXiv)</a> | <a href="https://gs2mesh.github.io/">Project Page</a>  </h3>
