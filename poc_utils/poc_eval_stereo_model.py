@@ -15,9 +15,6 @@ import torch
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..', 'evaluation', 'DTU', 'eval_code')))
-# sys.path.append(os.path.abspath(os.path.join(__file__, '..', 'evaluation', 'DTU', 'eval_code')))
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "third_party", "gaussian-splatting")))
-
 
 from poc_run_single import run_single
 from poc_run_dtu import move_dir
@@ -186,38 +183,20 @@ def run_DTU_eval(args):
     #  Create meshes and evaluate
     # =============================================================================
     for scan_num in args.scans:
-        if scan_num == 24:
-            args.masker_prompt = "buildings"
-        elif scan_num == 37:
-            args.masker_prompt = "all_objects"    
-        elif scan_num == 63:
-            args.masker_prompt = "entire_connected_fruit_group"
-        elif scan_num == 97:
-            args.masker_prompt = "all_packages"
-        else:
-            args.masker_prompt = "main_object"
-
-
         args.TSDF_cleaning_threshold = 10000 if scan_num in fragile_test_scans_nums else TSDF_cleaning_threshold
-        print(args.TSDF_cleaning_threshold)
+        
+        #run and eval original model
+        args.stereo_model = "DLNR_Middlebury"
         args.skip_GS = skip_GS
         dataset_string, exp_path, csv_file = prepare_eval(args)
         create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
 
+        #run and eval finetuned model
+        args.stereo_model = f"DLNR_Finetuned_scan{scan_num}"
+        args.skip_GS = True
+        dataset_string, exp_path, csv_file = prepare_eval(args)
+        create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
         
-        # #run and eval original model
-        # args.stereo_model = "DLNR_Middlebury"
-        # args.skip_GS = skip_GS
-        # dataset_string, exp_path, csv_file = prepare_eval(args)
-        # create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
-
-        # #run and eval finetuned model
-        # args.stereo_model = f"DLNR_Finetuned_scan{scan_num}"
-        # args.skip_GS = True
-        # dataset_string, exp_path, csv_file = prepare_eval(args)
-        # create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
-        
-
 
 # =============================================================================
 #  Main driver code with arguments
