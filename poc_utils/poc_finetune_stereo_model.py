@@ -71,14 +71,12 @@ def load_dlnr_finetune_args(args):
 
     DLNR_args = Namespace(
         name=args.trained_model_name,
-        # restore_ckpt="/home/itamarp/gs2mesh/checkpoints/DLNR_Finetuned_Figures/40000_DLNR_Finetuned_Figures.pth",
         restore_ckpt=restore_ckpt,
         mixed_precision=True,
         batch_size=8,
         train_datasets=["gs2mesh_ds"],
         lr=lr,
         num_steps=40000,
-        # num_steps=80000,
         start_num_steps = start_num_steps,
         image_size=[384, 736],
         train_iters=22,
