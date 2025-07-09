@@ -22,7 +22,7 @@
 NUM_NODES=1
 NUM_CORES=2
 NUM_GPUS=1
-NODE_NAME="gipdeep10"
+NODE_NAME="gipdeep11"
 JOB_NAME=$(basename $1 .py)
 MAIL_USER="itamarp@campus.technion.ac.il"
 MAIL_TYPE=END,FAIL # Valid values are NONE, BEGIN, END, FAIL, REQUEUE, ALL
@@ -50,7 +50,7 @@ for arg in "$@"; do
 done
 JOB_NAME="${JOB_NAME}_${TRAINED_MODEL_NAME_VALUE}"
 
-if [[ TRAINED_MODEL_NAME_VALUE == "" ]]; then
+if [[ $TRAINED_MODEL_NAME_VALUE == "" ]]; then
 	# Default trained model name value (in case --scans is not provided)
 	STEREO_MODEL_VALUE=""
 

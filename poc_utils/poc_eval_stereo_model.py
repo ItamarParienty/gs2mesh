@@ -32,12 +32,11 @@ base_dir = os.path.abspath(os.getcwd())
 #  Run
 # =============================================================================
 test_scans_nums = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
-fragile_test_scans_nums = [24, 37, 63, 97]
+fragile_test_scans_nums = [24, 37, 63, 69, 97]
 
 test_scans_by_class = {
     "DLNR_Finetuned_Full" : test_scans_nums,
-    # "DLNR_Finetuned_Figures" : [55, 69, 83, 105, 106, 110, 114, 118, 122],
-    "DLNR_Finetuned_Figures" : [55, 83, 105, 106, 110, 114, 118, 122],
+    "DLNR_Finetuned_Figures" : [55, 69, 83, 105, 106, 110, 114, 118, 122],
     "DLNR_Finetuned_Food" : [63, 97],
     "DLNR_Finetuned_Buildings" : [24],
     "DLNR_Finetuned_Hardware_Materials" : [37, 40],
@@ -170,6 +169,10 @@ def run_DTU_eval(args):
     args.renderer_save_json = True
     args.masker_automask = True
     args.masker_SAM2_local = False
+
+    args.TSDF_use_mask = False
+    args.skip_masking = True
+
     args.masker_prompt = 'main_object'
     skip_GS = args.skip_GS
     print(f"skip_GS = {skip_GS}")
