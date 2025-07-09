@@ -63,11 +63,6 @@ def set_poc_args(args, scan_num):
 
     args.dataset_name = "DTU_test" if scan_num in test_scans_nums else "DTU_train"
 
-    # TODO: delete
-    # args.skip_colmap = True
-    # args.skip_GS = True
-    # args.skip_rendering = True
-    # args.skip_masking = True
     return args
 
 
