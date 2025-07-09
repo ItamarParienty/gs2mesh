@@ -109,7 +109,6 @@ def convert_gt_depth_to_disparities(args, strings):
     occlusion_mask = np.load(paths_dict["occlusion_mask_path"])
 
     # Combine valid_mask with occlusion mask and segmentation_mask before calculating median depth
-    # valid_mask = ((gt_depth_map > 0) & (occlusion_mask > 0)) & segmentation_mask
     valid_mask = ((gt_depth_map > 0) & (occlusion_mask > 0))
 
     # Calculate scale factor for disparity using median values
@@ -132,74 +131,6 @@ def convert_gt_depth_to_disparities(args, strings):
 
     save_disparity_for_ds(args, paths_dict, masked_gt_disparity)
 
-    if (args.cam_idx == 58):
-        os.makedirs("plots", exist_ok=True)
-        plt.imsave(("plots/gt_depth_map.png"), gt_depth_map)
-        plt.imsave(("plots/generated_disparity.png"), generated_disparity)
-        plt.imsave(("plots/segmentation_mask.png"), segmentation_mask)
-        plt.imsave(("plots/occlusion_mask.png"), occlusion_mask)
-        plt.imsave(("plots/valid_mask.png"), valid_mask)
-        plt.imsave(("plots/scaled_gt_disparity.png"), scaled_gt_disparity)
-        plt.imsave(("plots/difference_mask.png"), difference_mask)
-        plt.imsave(("plots/final_mask.png"), final_mask)
-        plt.imsave(("plots/masked_gt_disparity.png"), masked_gt_disparity)
-
-def convert_gt_depth_to_disparities_new(args, strings):
-    # =============================================================================
-    #  Convert GT depths to disparities
-    # =============================================================================
-    paths_dict = create_paths(args, strings)
-    os.makedirs("plots", exist_ok=True)
-
-    with open(args.camera_data_file) as cam_data_file:
-        camera_data = json.load(cam_data_file)
-
-    # set parameters
-    baseline = camera_data[args.cam_idx]["left"]["baseline"]
-    fx = camera_data[args.cam_idx]["left"]["fx"]
-
-    # Load the necessary files
-    gt_depth_map = readPFM(paths_dict["gt_depth_path"])
-    plt.imsave(("plots/gt_depth_map.png"), gt_depth_map)
-    generated_disparity = np.load(paths_dict["generated_disparity_path"])
-    plt.imsave(("plots/generated_disparity.png"), generated_disparity)
-    segmentation_mask = np.load(paths_dict["segmentation_mask_path"])
-    plt.imsave(("plots/segmentation_mask.png"), segmentation_mask)
-    occlusion_mask = np.load(paths_dict["occlusion_mask_path"])
-    plt.imsave(("plots/occlusion_mask.png"), occlusion_mask)
-
-    # Combine valid_mask with occlusion mask and segmentation_mask before calculating median depth
-    valid_mask = ((gt_depth_map > 0) & (occlusion_mask > 0)) & segmentation_mask
-    plt.imsave(("plots/valid_mask.png"), valid_mask)
-
-    generated_disparity_valid_masked = np.where(valid_mask, generated_disparity, 0)
-    plt.imsave(("plots/generated_disparity_valid_masked.png"), generated_disparity_valid_masked)
-    gt_depth_map_valid_masked = np.where(valid_mask, gt_depth_map, 0)
-    plt.imsave(("plots/gt_depth_map_valid_masked.png"), gt_depth_map_valid_masked)
-
-    gt_disparity_valid_masked = np.zeros_like(gt_depth_map_valid_masked)
-    gt_disparity_valid_masked[valid_mask] = (fx * baseline) / gt_depth_map_valid_masked[valid_mask]
-    plt.imsave(("plots/gt_disparity_valid_masked.png"), gt_disparity_valid_masked)
-
-    sf = np.median(generated_disparity_valid_masked[valid_mask]) / np.median(gt_disparity_valid_masked[valid_mask])
-    print("----------------------")
-    print(f"SF = {sf}")
-    print("----------------------")
-
-    scaled_gt_disparity_valid_masked = np.where(valid_mask, gt_disparity_valid_masked * sf, 0)
-    plt.imsave(("plots/scaled_gt_disparity_valid_masked.png"), scaled_gt_disparity_valid_masked)
-
-    difference_mask = np.abs(scaled_gt_disparity_valid_masked - generated_disparity) <= args.difference_mask_threshold
-    plt.imsave(("plots/difference_mask.png"), difference_mask)
-
-    final_mask = valid_mask & difference_mask
-    plt.imsave(("plots/final_mask.png"), final_mask)
-
-    print(np.sum(final_mask^difference_mask))
-
-    final_gt_disparity =  np.where(final_mask, scaled_gt_disparity_valid_masked, 0)
-    plt.imsave(("plots/final_gt_disparity.png"), final_gt_disparity)
-
 
 def copy_renders_to_ds_folder(args, strings):
     # =============================================================================
@@ -215,7 +146,6 @@ def copy_renders_to_ds_folder(args, strings):
 
     copyfile(paths_dict['generated_render_left_path'], left_out_path)
     copyfile(paths_dict['generated_render_right_path'], right_out_path)
-
 
 
 def create_DTU_data_for_finetune(args):
@@ -240,8 +170,7 @@ def create_DTU_data_for_finetune(args):
         print(f"----START Create Data for Fintune SCAN {scan_num}----")
         
         args.scans = [scan_num]
-        # args.dataset_name = "DTU_test" if scan_num in test_scans_nums else "DTU_train"
-        args.dataset_name = "DTU_train"
+        args.dataset_name = "DTU_test" if scan_num in test_scans_nums else "DTU_train"
         args.colmap_name = f"scan{scan_num}"
         strings = create_strings(args)
         strings["output_for_finetune_dir_root"] = strings["output_dir_root"].replace("output", "output_for_finetune")        
@@ -258,10 +187,7 @@ def create_DTU_data_for_finetune(args):
             camera_data = json.load(cam_data_file)
         args.cams_num = len(camera_data)
 
-
         #process and copy data to final DS
-        # args.cam_idx = 58
-        # convert_gt_depth_to_disparities_new(args, strings)
         for cam_idx in range(args.cams_num):
             print(f"----START PROCESSING CAM {cam_idx}----")
             args.cam_idx = cam_idx
