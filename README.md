@@ -7,6 +7,8 @@
 
 We present an approach to training stereo neural networks (NNs) using novel views synthesized from 3D Gaussian Splatting (GS) models. Traditional stereo datasets require precise camera calibration and advanced equipment, making them expensive to create. Our method overcomes this limitation by generating novel views using Gaussian splatting, a 3D scene reconstruction and rendering technique. By augmenting training data with synthetic stereo pairs at varying perspectives, we reduce the cost of creating the dataset and improve the model’s ability to fit the learned task. We evaluated our approach on the [DTU](Acknowledgements) dataset (standard stereo benchmark) and demonstrated improvements in depth estimation accuracy and 3D nuances compared to models trained on conventional datasets. Our findings suggest that integrating Gaussian Splatting-based novel view synthesis into stereo training pipelines can reduce training costs and enhance performance across real-world and synthetic stereo tasks.
 
+[Results and final reports](https://drive.google.com/drive/folders/1lY9F-B_pHCamRpQx7QkwcVf4yTsFlQK7?usp=drive_link)
+
 ![pipeline](assets/Novel_Views_Pipe.png)
 
 <p align="center">
