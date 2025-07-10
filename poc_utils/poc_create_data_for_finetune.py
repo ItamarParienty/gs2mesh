@@ -159,8 +159,6 @@ def create_DTU_data_for_finetune(args):
         args.scans = test_scans_nums
 
     args.data_for_finetune_root = "data_for_finetune"
-    args.masker_prompt="entire_connected_fruits_and_packages_group"
-
     scans_to_run = args.scans
 
     for scan_num in scans_to_run:
