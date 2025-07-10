@@ -125,6 +125,9 @@ class ArgParser:
             self.parser.add_argument('--skip_create_mesh', action='store_true', help="Skips mesh creation for finetune data creation")
             self.parser.add_argument('--difference_mask_threshold', type=int, default=30, help="Threshold for the difference mask for processing the depth maps for finetune data")
             self.parser.add_argument('--trained_model_name', type=str, default='DLNR_Finetuned', help='Name of the finetuned model')
+            self.parser.add_argument('--fintune_num_steps', type=int, default=40000, help='Number of training steps for the finetuned model')
+            self.parser.add_argument('--fintune_batch_size', type=int, default=8, help='Batch size for the finetuning process')
+            self.parser.add_argument('--fintune_initial_lr', type=float, default=0.0002, help='Initial learning rate for the finetuning process')
 
 
     def default_value(self, param):

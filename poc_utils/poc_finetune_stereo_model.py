@@ -29,6 +29,7 @@ from third_party.DLNR.core.stereo_datasets import StereoDataset
 from third_party.DLNR.core.utils.utils import InputPadder as DLNR_InputPadder
 from third_party.DLNR.train_stereo import train
 from poc_show_train_results import plot_loss
+from show_val_scores import plot_loss as show_val
 # from poc_run_dtu import test_scans_nums, all_train_scans
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -63,7 +64,7 @@ def load_dlnr_finetune_args(args):
             restore_ckpt =  osp.join(checkpoint_dir, checkpoint_file)
             start_num_steps = int(checkpoint_file.split('_')[0])
     
-    lr = 0.0002
+    lr = args.fintune_initial_lr
     if osp.exists(f"runs/{args.trained_model_name}/lr.txt"):
         with open(f"runs/{args.trained_model_name}/lr.txt", "r") as file:
             lr = float(file.read())
@@ -73,10 +74,10 @@ def load_dlnr_finetune_args(args):
         name=args.trained_model_name,
         restore_ckpt=restore_ckpt,
         mixed_precision=True,
-        batch_size=8,
+        batch_size=args.fintune_batch_size,
         train_datasets=["gs2mesh_ds"],
         lr=lr,
-        num_steps=40000,
+        num_steps=args.fintune_num_steps,
         start_num_steps = start_num_steps,
         image_size=[384, 736],
         train_iters=22,
@@ -133,6 +134,7 @@ def finetune_stereo_model(args):
     shutil.move(event_file_path, new_event_file_dir_name)
 
     plot_loss(new_event_file_path, args.trained_model_name)
+    show_val(args.trained_model_name)
 
 
 # =============================================================================

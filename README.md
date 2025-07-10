@@ -21,6 +21,7 @@ We present an approach to training stereo neural networks (NNs) using novel view
 		    <li>Use <code>--difference_mask_threshold=&ltthreshold&gt</code> to change threshold of the difference mask (explained in report)</li>
 		    <li>Use <code>--skip_create_mesh</code> to skip the mesh creation step for the rendering (only if already created it)</li>
 		    <li>Use <code>--skip_GS</code> to skip the GS creation step for the rendering (only if already created it)</li>
+			<li>Processed data will be saved in <code>./data_for_finetune</code></li>
 		</ul>
   	<h3 align="left">Finetune the model:</h3>
 		<ul align="left">
@@ -34,6 +35,22 @@ We present an approach to training stereo neural networks (NNs) using novel view
 				<li>DLNR_Finetuned_Hardware_Materials</li>
 				<li>DLNR_Finetuned_Body_Parts</li>
 			</ul>
+			<li>You can edit training hyper parameters using the following arguments: (default values are the ones used for the full model and can be found in the report) </li>
+			<ul>
+				<li><code>--fintune_num_steps=&ltNumber of training steps for the finetuned model&gt</code></li>
+				<li><code>--fintune_batch_size=&ltBatch size for the finetuning process&gt</code></li>
+				<li><code>--fintune_initial_lr=&ltInitial learning rate for the finetuning process&gt</code></li>
+			</ul>
+			<li>Finetuned model will be saved in <code>./third_party/DLNR/pretrained</code></li>
+			<li>Finetuned model's checkpoints will be saved in <code>./checkpoints</code></li>
+			<li>Finetuned model's validation scores will be saved in <code>./runs</code></li>
+		</ul>
+	<h3 align="left">Evaluate the finetuned models:</h3>
+		<ul align="left">
+		    <li>Run <code>python3 ./poc_utils/poc_eval_stereo_model.py --stereo_model=&ltfinetuned model name&gt --scans=&ltscans numbers to train on&gt</code></li>
+			<li>If using one of the above model names, scan numbers will be set automatically according to class/full test scans (can be found in report)</li>
+		    <li>Evaluation output will be saved in <code>./evaluation/DTU/eval_output</code></li>
+		    <li>Use <code>--skip_GS</code> to skip the GS creation step for the rendering (only if already created it)</li>
 		</ul>
 </p>
 

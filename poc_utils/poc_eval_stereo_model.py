@@ -185,17 +185,20 @@ def run_DTU_eval(args):
     for scan_num in args.scans:
         args.TSDF_cleaning_threshold = 10000 if scan_num in fragile_test_scans_nums else TSDF_cleaning_threshold
         
-        #run and eval original model
-        args.stereo_model = "DLNR_Middlebury"
-        args.skip_GS = skip_GS
         dataset_string, exp_path, csv_file = prepare_eval(args)
         create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
 
-        #run and eval finetuned model
-        args.stereo_model = f"DLNR_Finetuned_scan{scan_num}"
-        args.skip_GS = True
-        dataset_string, exp_path, csv_file = prepare_eval(args)
-        create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
+        # #run and eval original model
+        # args.stereo_model = "DLNR_Middlebury"
+        # args.skip_GS = skip_GS
+        # dataset_string, exp_path, csv_file = prepare_eval(args)
+        # create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
+
+        # #run and eval finetuned model
+        # args.stereo_model = f"DLNR_Finetuned_scan{scan_num}"
+        # args.skip_GS = True
+        # dataset_string, exp_path, csv_file = prepare_eval(args)
+        # create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_Dataset, csv_file)
         
 
 # =============================================================================

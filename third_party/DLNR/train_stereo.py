@@ -170,6 +170,9 @@ def train(args):
     losses_to_save = []
     should_keep_training = True
     global_batch_num = 0
+    best_checkpoint = 0
+    best_val_epe = np.inf
+
     while should_keep_training:
 
         for i_batch, (_, *data_blob) in enumerate(tqdm(train_loader)):
@@ -213,6 +216,11 @@ def train(args):
                     save_lr(args.name, optimizer.param_groups[0]['lr'])
                     save_loss(args.name, losses_to_save)
                     losses_to_save = []
+
+                    if best_val_epe > results['gs2mesh_dtu-epe']:
+                        best_val_epe = results['gs2mesh_dtu-epe']
+                        best_checkpoint = total_steps + 1
+
                 else:
                     results = validate_things(model.module, iters=args.valid_iters)
 
@@ -235,7 +243,8 @@ def train(args):
     run_file_path = logger.writer.file_writer.event_writer._file_name
     print("FINISHED TRAINING")
     logger.close()
-    PATH = 'checkpoints/%s.pth' % args.name
+    # PATH = 'checkpoints/%s.pth' % args.name
+    PATH = 'checkpoints/%s/%d_%s.pth' % (args.name, best_checkpoint, args.name)
     torch.save(model.state_dict(), PATH)
 
     return PATH, run_file_path
