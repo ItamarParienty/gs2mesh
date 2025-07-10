@@ -149,7 +149,7 @@ def create_mesh_and_eval(args, scan_num, exp_path, dataset_string, Offical_DTU_D
     # =============================================================================
     
     move_dir(output_dir_root, output_for_eval_dir_root)
-    # move_dir(splatting_output_dir_root, splatting_output_for_eval_dir_root)
+    move_dir(splatting_output_dir_root, splatting_output_for_eval_dir_root)
 
 def run_DTU_eval(args):
 
