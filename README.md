@@ -12,6 +12,37 @@ We present an approach to training stereo neural networks (NNs) using novel view
 ![pipeline](assets/Novel_Views_Pipe.png)
 
 <p align="center">
+  <h2 align="left">How to run:</h2>
+	<h3 align="left">Create the processed train set:</h3>
+		<ul align="left">
+		    <li>Run <code>python3 ./poc_utils/poc_create_data_for_finetune.py --scans=&ltscans numbers to create&gt</code></li>
+		    <li>Use <code>--scans=0</code> for all train scans</li>
+		    <li>Use <code>--scans=-1</code> for all test scans</li>
+		    <li>Use <code>--difference_mask_threshold=&ltthreshold&gt</code> to change threshold of the difference mask (explained in report)</li>
+		    <li>Use <code>--skip_create_mesh</code> to skip the mesh creation step for the rendering (only if already created it)</li>
+		    <li>Use <code>--skip_GS</code> to skip the GS creation step for the rendering (only if already created it)</li>
+		</ul>
+  	<h3 align="left">Finetune the model:</h3>
+		<ul align="left">
+		    <li>Run <code>python3 ./poc_utils/poc_finetune_stereo_model.py --trained_model_name=&ltfinetuned model name&gt --scans=&ltscans numbers to train on&gt</code></li>
+		    <li>If using one of the folloing model names, scan numbers will be set automatically according to class/full train scans (can be found in report):</li>
+			<ul>
+				<li>DLNR_Finetuned_Full</li>
+				<li>DLNR_Finetuned_Figures</li>
+				<li>DLNR_Finetuned_Food</li>
+				<li>DLNR_Finetuned_Buildings</li>
+				<li>DLNR_Finetuned_Hardware_Materials</li>
+				<li>DLNR_Finetuned_Body_Parts</li>
+			</ul>
+		</ul>
+</p>
+
+<p align="center">
+  <div align="center"></div>
+</p>
+
+
+<p align="center">
   <h1 align="center">Original Paper:<br>GS2Mesh: Surface Reconstruction from Gaussian Splatting via Novel Stereo Views</h1>
   <p align="center"> Yaniv Wolf · Amit Bracha · Ron Kimmel</p>
   <h3 align="center">ECCV 2024</h3>
